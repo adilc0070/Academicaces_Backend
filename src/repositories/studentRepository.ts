@@ -1,41 +1,59 @@
 // import { Types } from "mongoose";
 import student from "../models/student";
-import { IStudent } from "../interfaces/studentInterface";
+import { IStudent, IStudentRes } from "../interfaces/studentInterface";
 
 class StudentRepo {
-    async findUserByEmail(email : string ): Promise<IStudent | null> {
-        try{
-            const user = await student.findOne({email:email})
-            return user
-        }catch(error){
-            console.log('error in finding user by email',error)
-            throw error
-        }
-    }
+    async createUser(userName: string, email: string, password: string, bio: string, verified: boolean = false): Promise<IStudent> {
+        try {
 
-    async findUserById(id : string ): Promise<IStudent | null> {
-        try{
-            const user = await student.findOne({id:id})
-            return user
-        }catch(error){
-            console.log('error in finding user by id',error)
-            throw error
-        }
-    }
-
-    async createUser(userName: string, email: string, password: string): Promise<IStudent | null> {
-        try{
-            const newUser = await new student({
-                userName:userName,
-                email:email,
-                password:password
+            const newStudent: IStudent | null = new student({
+                userName,
+                email,
+                password,
+                bio,
+                verified,
+                role:"student"
             })
-            return newUser.save()
-        }catch(error){
-            console.log('error in creating user',error)
+            return await newStudent.save()
+        } catch (error) {
+            console.log("error in creating student", error);
+            throw error
+        }
+    }
+    async findUserByEmail(email: string): Promise<IStudent | null> {
+        try {
+            const user: IStudent | null = await student.findOne({ email: email }).exec()
+            return user
+        } catch (error) {
+            throw error
+        }
+    }
+    async findUsers(): Promise<IStudent[] | null> {
+        try {
+            const users: IStudent[] | null = await student.find().exec()
+            return users
+        } catch (error) {
+            throw error
+        }
+    }
+    async findById(_id: string): Promise<IStudent | null> {
+        try {
+            return await student.findById(_id).exec()
+        } catch (error) {
+            throw error
+        }
+    }
+    async findByIdAndUpdate(_id: string, data: IStudentRes): Promise<IStudent | null> {
+        try {
+
+            return await student.findByIdAndUpdate({_id}, data, { new: true })
+        } catch (error) {
+            console.log("error in find by id and update student", error);
             throw error
         }
     }
 }
+
+
 
 export default StudentRepo;

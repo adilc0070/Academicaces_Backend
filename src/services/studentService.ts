@@ -1,224 +1,106 @@
-import { IStudent } from "../interfaces/studentInterface"
+// import { IOtp } from "../interfaces/otpInterface";
+import { IStudent, IStudentRes } from "../interfaces/studentInterface"
 import OtpRepo from "../repositories/otpRepository"
 import StudentRepo from "../repositories/studentRepository"
+import { generateToken } from "../utils/jwt";
+import { sendVerifyMail } from "../utils/otpVerification";
+import bycrypt from "bcrypt"
 
-class StudentServices{
+
+class StudentServices {
     private studentRep: StudentRepo;
-    private otpRepo:OtpRepo
+    private otpRepo: OtpRepo
 
-    constructor(studentRep: StudentRepo ,otpRepo:OtpRepo) {
+    constructor(studentRep: StudentRepo, otpRepo: OtpRepo) {
         this.studentRep = studentRep;
         this.otpRepo = otpRepo
     }
-
-    async checkExistingEmail(email: string): Promise<boolean> {
+    async exist(email: string): Promise<boolean> {
         try {
-            const userData:IStudent | null = await this.studentRep.findUserByEmail(email);
-            return !!userData;
+            const data: IStudent | null = await this.studentRep.findUserByEmail(email)
+            return !!data
         } catch (error) {
-            console.error("Error in checkExistingEmail:", error);
-            throw error;
+            console.log("Error in emailEixist:", error);
+            throw error
         }
     }
 
-    async createUser(name: string, phone: string , email: string, password: string): Promise<UserRes> {
+    async createUser(userName: string, email: string, password: string, bio: string, verified: boolean = false): Promise<IStudent> {
         try {
-            // Validate required fields
-            if (!name || !phone || !email || !password) {
-                return { status: false, message: 'Missing required fields' };
-            }
+            console.log(userName, email, password, bio, verified);
+            
+            if (!userName || !email || !password || !bio) throw new Error("Missing required fields")
+            let existOrNote: boolean = await this.exist(email)
+            if (existOrNote) throw new Error("Email already in use")
 
-            // Check if email already exists
-            const checkEmail: boolean = await this.checkExistingEmail(email);
-            if (checkEmail) {
-                return { status: false, message: 'Email is already in use' };
-            }
+            let otp: string = await sendVerifyMail(userName, email)
+            await this.otpRepo.createOtp(email, otp)
 
-            const otp:string = await sendVerifyMail(name,email)
-            await this.otpRepo.createOrUpdateOtp(email,otp)
+            let hashPassword: string = await bycrypt.hash(password, 10)
 
-            // Hash the password
-            const hashedPass: string = await bcrypt.hash(password, 10);
+            let data: IStudent = await this.studentRep.createUser(userName, email, hashPassword, bio, verified,)
+            if (!data) throw new Error("Failed to create user")
 
-            // Create user
-            const userData:IStudent | null = await this.studentRep.createUser(name, phone, email, hashedPass);
-            if(!userData) throw error
-            return {userData,status: true, message: 'User Signup successfully' };
+            return data
         } catch (error) {
             console.error("Error in createUser:", error);
-            throw error;
+            throw error
         }
     }
 
-    async verifyOtp(_id:string,otp:string): Promise<UserRes> {
+    // async verifyOtp(_id: string, otp: string): Promise<IStudentRes | null> {
+    //     try {
+    //         let userexist: IStudent | null = await this.studentRep.findById(_id)
+    //         if (!userexist) throw new Error("User not found")
+
+    //         let otpData: IOtp | null = await this.otpRepo.findOtpByEmail(userexist.email)
+    //         if (!otpData) throw new Error("Otp not found")
+
+    //         if (otpData.otp !== otp) return { status: false, message: "Invalid otp" }
+    //         else {
+    //             let userData: IStudent | null = await this.studentRep.findByIdAndUpdate(_id, { verified: true })
+    //             return { userData, status: true, message: "user verified successfully" }
+    //         }
+
+    //     } catch (error) {
+    //         console.error("Error in verifyOtp:", error);
+    //         throw error
+    //     }
+    // }
+
+    async authUser(email: string, password: string): Promise<IStudentRes | null> {
         try {
-
-            const userData:IStudent | null = await this.studentRep.findUserById(_id)
-            if(!userData) throw error
-            const otpData:OtpDoc | null = await this.otpRepo.findOtpByEmail(userData.email);
-            if(!otpData) throw error
-
-            if(otpData.otp == otp){
-                const userData:IStudent | null = await this.studentRep.findUserByIdAndUpdate(_id,{verified:true})
-                return { userData, status: true, message: 'Verification successful' };
-            }else{
-                return {status:false ,message:"Otp verification filed"}
-            }
-
-        } catch (error) {
-            console.error("Error in verifyOtp:", error);
-            throw error;
-        }
-    }
-
-    async getOtp(_id:string): Promise<Res> {
-        try {
-
-            const userData:IStudent | null = await this.studentRep.findUserById(_id)
-            if(!userData) return {status:false,message:"Cant find the user"}
-            const otpData:OtpDoc | null = await this.otpRepo.findOtpByEmail(userData?.email);
-            return otpData ? {data:otpData,status:true ,message:"Otp get"} : {status:false ,message:"Can't find the otp"}
-
-        } catch (error) {
-            console.error("Error in getOtp:", error);
-            throw error;
-        }
-    }
-
-    async resendOtp(_id:string): Promise<Res> {
-        try {
-
-            const userData:IStudent | null = await this.studentRep.findUserById(_id)
-            if(!userData) return {status:false,message:"Cant find the user"}
-
-            const otp:string = await sendVerifyMail(userData.name,userData.email)
-            const otpData:OtpDoc | null = await this.otpRepo.createOrUpdateOtp(userData.email,otp);
-
-            return otpData ? {data:otpData,status:true ,message:"Otp get"} : {status:false ,message:"Can't find the otp"}
-
-        } catch (error) {
-            console.error("Error in resendOtp:", error);
-            throw error;
-        }
-    }
-
-
-    async authUser(email: string, password: string): Promise<UserRes> {
-        try {
-            const userData:IStudent | null = await this.studentRep.findUserByEmail(email);
-            if (userData) {
-                const isPasswordValid:Boolean = await bcrypt.compare(password, userData.password);
+            let userData: IStudent | null = await this.studentRep.findUserByEmail(email)
+            if (!userData) throw new Error("User not found")
+            else {
+                let isPasswordValid: boolean = await bycrypt.compare(password, userData.password)
                 if (isPasswordValid) {
-                    if(userData.is_blocked){
-                        return{status:false,message:"Admin blocked you"}
-                    }else{  
-                        const token: string = generateToken(userData);
-                        return { userData, token, status: true, message: 'Authentication successful' };
-                    }
+                    let token: string = generateToken(userData)
+                    return { userData, token, status: true, message: 'successful' }
                 } else {
-                    return { status: false, message: 'Incorrect password' };
+                    return { status: false, message: 'Incorrect password' }
                 }
-            } else {
-                return { status: false, message: 'Email not found' };
             }
+
         } catch (error) {
             console.error("Error in authUser:", error);
-            throw error;
+            throw error
         }
     }
-
-    async listUsers(): Promise<Res> {
+    async listUsers(): Promise<IStudent[] | null> {
         try {
-            const userData:IStudent[] | null= await this.studentRep.findUsers()
-            return {data:userData,status:true, message:'Users find successful'}
-
+            return await this.studentRep.findUsers()
         } catch (error) {
             console.error("Error in listUsers:", error);
-            throw error;
+            throw error
         }
     }
+    // async blockAndUnblockUser(_id: string, status: boolean): Promise<IStudent | null> {
+    //     try {
 
-    async getUserData(_id:string): Promise<Res> {
-        try {
+    //     }
+    // }
 
-            const userData:IStudent | null= await this.studentRep.findUserById(_id)
-            if(!userData) return {status:false,message:"Cant find the user"}
-            return {data:userData,status:true, message:'User find successful'}
-
-        } catch (error) {
-            console.error("Error in getUserData:", error);
-            throw error;
-        }
-    }
-
-    async updateProfile(_id:string,name: string, phone: string , email: string, password: string ,newPassword:string,image:string): Promise<UserRes | null> {
-        try {
-
-            const oldUserData:IStudent | null = await this.studentRep.findUserById(_id)
-            if(!oldUserData) return {status:false,message:'Cant find the user'}
-            let newImage:string = ""
-            
-            if(password && oldUserData){
-
-                const isMatch:Boolean = await bcrypt.compare(password,oldUserData.password);
-                
-                if(isMatch){
-
-                    if(image){
-                        if(image !== oldUserData.image){
-                            newImage = await uploadFile(image, "user_profile");
-                        }else{
-                            newImage = oldUserData.image
-                        }
-                    }else{
-                        newImage = oldUserData.image
-                    }
-
-                    const hashedPass: string = await bcrypt.hash(newPassword, 10);
-                    const userData:IStudent | null = await this.studentRep.findUserByIdAndUpdate(_id,{name,phone,email,password:hashedPass,image:newImage})
-                    if(!userData) return {status:false,message:"Something error in updating the data"}
-                    return { userData, status: true, message: 'Profile Updated successfully' };
-
-                }else{
-                    return {status:false,message:"Incorrect password"}
-                }
-            }
-
-
-            if(oldUserData){
-
-                if(image){
-                    if(image !== oldUserData.image){
-                        newImage = await uploadFile(image, "user_profile");
-                    }else{
-                        newImage = oldUserData.image
-                    }
-                }else{
-                    newImage = oldUserData.image
-                }
-
-                const userData:IStudent | null = await this.studentRep.findUserByIdAndUpdate(_id,{name,phone,email,image:newImage})
-                return { userData, status: true, message: 'Profile Updated successfully' };
-            }
-
-            return {status:false ,message:"Something wrong"}
-
-        } catch (error) {
-            console.error("Error in updateProfile:", error);
-            throw error;
-        }
-    }
-
-    async changeBlockStatus(_id:string,is_blocked:Boolean): Promise<Res> {
-        try {
-
-            const userData:IStudent | null = await this.studentRep.changeBlockStatus(_id,is_blocked)
-            if(!userData) return {status:false,message:"Cant find the user"}
-            return {data:userData,status:true,message:`User is ${is_blocked ? "blocked" : "unblocked"}`}
-            
-        } catch (error) {
-            console.error("Error in changeBlockStatus:", error);
-            throw error;
-        }
-    }
 }
+
+export default StudentServices

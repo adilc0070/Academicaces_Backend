@@ -8,7 +8,7 @@ class OtpRepo {
             const filter = { email }
             const update = { otp }
             const options = { upsert: true, new: true }
-            const sendingOtp : IOtp | null = await Otp.findOneAndUpdate(filter, update, options).exec()
+            const sendingOtp: IOtp | null = await Otp.findOneAndUpdate(filter, update, options).exec()
             return sendingOtp
         } catch (error) {
             console.log('error in creating otp', error)
@@ -16,14 +16,16 @@ class OtpRepo {
         }
     }
 
-    async findOtp(email: string | undefined): Promise<IOtp | null> {
+    async findOtpByEmail(email: string): Promise<IOtp | null> {
+
         try {
-            const sendingOtp: IOtp | null = await Otp.findOne({ email: email })
-            return sendingOtp
+            const otp: IOtp | null = await Otp.findOne({ email: email }).exec()
+            return otp 
         } catch (error) {
-            console.log('error in finding otp', error)
-            throw error
+            console.log('error in finding otp by email', error);
+            return null
         }
+
     }
 }
 

@@ -6,6 +6,7 @@ export interface IStudent extends Document {
     password: string;
     bio: string;
     verified: boolean
+
 }
 
 export interface IStudentRes {

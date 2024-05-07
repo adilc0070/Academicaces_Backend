@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
-import { IStudent, IStudentRes } from "../interfaces/studentInterface";
+import { IStudent } from "../interfaces/studentInterface";
 import studentService from "../services/studentService" 
+import { setCookie } from "../utils/coockie";
+
 
 
 class StudentController{
@@ -9,16 +11,39 @@ class StudentController{
     constructor(studentService:studentService){
         this.studentService = studentService
     }
-    async createUser(req: Request, res: Response): Promise<void> {
+    async signUpUser(req: Request, res: Response): Promise<void> {
         try {
-            const { userName, email, password } = req.body;
-            const userData:IStudentRes = await this.studentService.createUser(userName, email, password);
-            res.status(200).json({userData, message: "User created successfully" ,status:true,statusCode:200});
+            const { userName, email, password, bio }: IStudent = req.body
+            const user = await this.studentService.createUser(userName, email, password, bio)
+            if(user){
+                res.status(201).json({ user, message: "User created successfully", status: true, statusCode: 201 }) 
+            }else{
+                res.status(500).json({ error: "Failed to create user" , status: false, statusCode: 500 })
+            }
         } catch (error) {
-            console.error("Error in createUser:", error);
-            res.status(500).json({ error: "Failed to create user" ,status:false,statusCode:500});
+            console.error("Error in signUpUser:", error);
+            res.status(500).json({ error: "Failed to create user" })
         }
-
     }
+    async signInUser(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, password }: IStudent = req.body
+            const user = await this.studentService.authUser(email, password)
+            if (user?.token) setCookie(res, 'userToken', user.token)
+            res.status(200).json({ user, message: "Login successful", status: true, statusCode: 200 })
+        } catch (error) {
+            console.error("Error in signInUser:", error);
+            res.status(500).json({ error: "Failed to login", status: false, statusCode: 500 })
+        }
+    }
+    // async verifyUser(req: Request, res: Response): Promise<void> {
+    //     try {
+            
+    //     } catch (error) {
+            
+    //     }
+    // }
     
 }
+
+export default StudentController
