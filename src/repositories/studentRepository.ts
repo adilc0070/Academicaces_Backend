@@ -1,6 +1,6 @@
 // import { Types } from "mongoose";
 import student from "../models/student";
-import { IStudent, IStudentRes } from "../interfaces/studentInterface";
+import { IStudent } from "../interfaces/studentInterface";
 
 class StudentRepo {
     async createUser(userName: string, email: string, password: string, bio: string, verified: boolean = false): Promise<IStudent> {
@@ -43,7 +43,7 @@ class StudentRepo {
             throw error
         }
     }
-    async findByIdAndUpdate(_id: string, data: IStudentRes): Promise<IStudent | null> {
+    async findByIdAndUpdate(_id: string, data:IStudent): Promise<IStudent | null> {
         try {
 
             return await student.findByIdAndUpdate({_id}, data, { new: true })

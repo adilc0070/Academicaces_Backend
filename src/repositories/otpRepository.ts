@@ -17,9 +17,8 @@ class OtpRepo {
     }
 
     async findOtpByEmail(email: string): Promise<IOtp | null> {
-
         try {
-            const otp: IOtp | null = await Otp.findOne({ email: email }).exec()
+            const otp: IOtp | null = await Otp.findOne({ email: email }).exec()            
             return otp 
         } catch (error) {
             console.log('error in finding otp by email', error);

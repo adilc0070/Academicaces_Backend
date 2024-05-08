@@ -1,5 +1,6 @@
 // import { IOtp } from "../interfaces/otpInterface";
 import { IStudent, IStudentRes } from "../interfaces/studentInterface"
+import { IOtp } from "../interfaces/otpInterface"
 import OtpRepo from "../repositories/otpRepository"
 import StudentRepo from "../repositories/studentRepository"
 import { generateToken } from "../utils/jwt";
@@ -27,8 +28,6 @@ class StudentServices {
 
     async createUser(userName: string, email: string, password: string, bio: string, verified: boolean = false): Promise<IStudent> {
         try {
-            console.log(userName, email, password, bio, verified);
-            
             if (!userName || !email || !password || !bio) throw new Error("Missing required fields")
             let existOrNote: boolean = await this.exist(email)
             if (existOrNote) throw new Error("Email already in use")
@@ -48,25 +47,24 @@ class StudentServices {
         }
     }
 
-    // async verifyOtp(_id: string, otp: string): Promise<IStudentRes | null> {
-    //     try {
-    //         let userexist: IStudent | null = await this.studentRep.findById(_id)
-    //         if (!userexist) throw new Error("User not found")
+    async verifyOtp(email: string, otp: string): Promise<IStudentRes | void> {
+        try {
+            let userexist: IStudent | null = await this.studentRep.findUserByEmail(email)
+            if (!userexist)  throw new Error("User not found")
+            let otpData: IOtp | null = await this.otpRepo.findOtpByEmail(email)
+            if (!otpData) throw new Error("Otp not found")
 
-    //         let otpData: IOtp | null = await this.otpRepo.findOtpByEmail(userexist.email)
-    //         if (!otpData) throw new Error("Otp not found")
+            if (otpData.otp !== otp) return { status: false, message: "Invalid otp" }
+            else userexist.verified=true
 
-    //         if (otpData.otp !== otp) return { status: false, message: "Invalid otp" }
-    //         else {
-    //             let userData: IStudent | null = await this.studentRep.findByIdAndUpdate(_id, { verified: true })
-    //             return { userData, status: true, message: "user verified successfully" }
-    //         }
+            let userData: IStudent | null = await this.studentRep.findByIdAndUpdate(userexist._id, userexist)
+            return { status: true, message: "user verified successfully", userData }
 
-    //     } catch (error) {
-    //         console.error("Error in verifyOtp:", error);
-    //         throw error
-    //     }
-    // }
+        } catch (error) {
+            console.error("Error in verifyOtp:", error);
+            throw error
+        }
+    }
 
     async authUser(email: string, password: string): Promise<IStudentRes | null> {
         try {
@@ -95,11 +93,6 @@ class StudentServices {
             throw error
         }
     }
-    // async blockAndUnblockUser(_id: string, status: boolean): Promise<IStudent | null> {
-    //     try {
-
-    //     }
-    // }
 
 }
 

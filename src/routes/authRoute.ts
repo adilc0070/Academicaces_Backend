@@ -18,6 +18,7 @@ authRoute.get('/admin', adminController.createAdmin)
 authRoute.post('/admin/login', adminController.adminLogin)
 
 authRoute.post('/user/signUp', studentController.signUpUser.bind(studentController))
+authRoute.post('/user/verifyOtp/', studentController.verifyUser.bind(studentController))
 
 authRoute.get('/', (_, res) => {
     res.send("Hello Worldsaddsa!");

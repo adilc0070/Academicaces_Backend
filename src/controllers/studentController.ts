@@ -36,13 +36,17 @@ class StudentController{
             res.status(500).json({ error: "Failed to login", status: false, statusCode: 500 })
         }
     }
-    // async verifyUser(req: Request, res: Response): Promise<void> {
-    //     try {
+    async verifyUser(req: Request,res:Response): Promise<void> {
+        try {
+            let { email, otp } = req.body
+            if(email && otp){
+                const user = await this.studentService.verifyOtp(email, otp)
+                if(user) res.json({ user, message: "User verified successfully", status: true, statusCode: 200 })
+            }        
+        } catch (error) {
             
-    //     } catch (error) {
-            
-    //     }
-    // }
+        }
+    }
     
 }
 
