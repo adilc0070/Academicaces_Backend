@@ -26,6 +26,15 @@ class OtpRepo {
         }
 
     }
+    async deleteOtp(email: string): Promise<IOtp | null> {
+        try {
+            const deletedOtp: IOtp | null = await Otp.findOneAndDelete({ email: email }).exec()
+            return deletedOtp
+        } catch (error) {
+            console.log('error in deleting otp', error)
+            throw error
+        }
+    }
 }
 
 export default OtpRepo

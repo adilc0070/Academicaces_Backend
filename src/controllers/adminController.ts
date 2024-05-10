@@ -3,6 +3,8 @@ import AdminServices from "../services/adminService";
 import { IAdmin, IAdminRes } from "../interfaces/adminInterface";
 import { setCookie } from "../utils/coockie";
 import Admin from "../models/admin";
+import bycrypt from 'bcrypt'
+
 
 
 class AdminController {
@@ -10,6 +12,7 @@ class AdminController {
 
     constructor(adminService: AdminServices) {
         this.adminService = adminService
+        
     }
 
     async adminLogin(req: Request, res: Response): Promise<void> {
@@ -25,13 +28,18 @@ class AdminController {
     }
     async createAdmin(): Promise<any> {
         try {
-           let data: IAdmin | null = await new Admin({ email: "demoAdmin", password: "demoAdmin" }).save()
-           if(data) console.log('demo admin created form controller',data);
-           
+            let adminEmail: string = "admin@gmail.com", password: string = '0070'
+            let hashPassword: string = await bycrypt.hash(password, 10)
+            let data: IAdmin | null = await new Admin({ email: adminEmail, password: hashPassword }).save()
+            if (data) console.log('demo admin created form controller', data);
+
         } catch (error) {
             console.error("Error in createADemoAdmin:", error);
         }
     }
+    
+
+
 }
 
 export default AdminController

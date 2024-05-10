@@ -45,13 +45,13 @@ class StudentRepo {
     }
     async findByIdAndUpdate(_id: string, data:IStudent): Promise<IStudent | null> {
         try {
-
             return await student.findByIdAndUpdate({_id}, data, { new: true })
         } catch (error) {
             console.log("error in find by id and update student", error);
             throw error
         }
     }
+    
 }
 
 

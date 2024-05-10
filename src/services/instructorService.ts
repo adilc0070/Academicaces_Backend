@@ -8,8 +8,10 @@ import { sendVerifyMail } from "../utils/otpVerification"
 class InstructorService {
     private instructorRepo: InstructorRepo
     private otpRepo: OtpRepo
-    constructor(instructorRepo: InstructorRepo) {
+
+    constructor(instructorRepo: InstructorRepo, otpRepo: OtpRepo) {
         this.instructorRepo = instructorRepo
+        this.otpRepo = otpRepo
     }
 
     async emailEixist(email: string): Promise<boolean> {
@@ -35,9 +37,13 @@ class InstructorService {
             await this.otpRepo.createOtp(email, otp)
 
             let hashPassword: string = await bycrypt.hash(password, 10)
+            let instructor: IInstructor = await this.instructorRepo.signUpInstructor(name, email, phone, hashPassword, bio, verified)
+            if (!instructor) return { status: false, message: "Failed to create instructor" }
 
+            return { status: true, message: "Instructor created successfully", instructor }
+        } catch (error) {
+            console.log("Error in signUpInstructor:", error);
+            throw error
         }
-
-
     }
 }

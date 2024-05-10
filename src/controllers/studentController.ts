@@ -47,6 +47,16 @@ class StudentController{
             
         }
     }
+
+    async listStudents( res: Response): Promise<void> {
+        try {
+            const students = await this.studentService.listUsers()
+            res.status(200).json({ students, message: "Students fetched successfully", status: true, statusCode: 200 })
+        } catch (error) {
+            console.error("Error in listStudents:", error);
+            res.status(500).json({ error: "Failed to fetch students", status: false, statusCode: 500 })
+        }
+    }
     
 }
 

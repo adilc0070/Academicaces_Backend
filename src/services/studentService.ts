@@ -58,6 +58,7 @@ class StudentServices {
             else userexist.verified=true
 
             let userData: IStudent | null = await this.studentRep.findByIdAndUpdate(userexist._id, userexist)
+            if (userData) await this.otpRepo.deleteOtp(email)
             return { status: true, message: "user verified successfully", userData }
 
         } catch (error) {

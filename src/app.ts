@@ -4,6 +4,7 @@ import connectDB from '../migrations/index'
 import authRoute from "./routes/authRoute";
 import cors from 'cors'
 import bodyParser from "body-parser";
+import adminRoute from "./routes/adminRoutes";
 
 
 dotenv.config()
@@ -22,6 +23,7 @@ app.use(cors({
 connectDB()
 
 app.use('/auth', authRoute)
+app.use('/admin', adminRoute)
 app.use('*', (_, res) => {
     res.send("Hello Worldsaddsa!");
 })
