@@ -48,17 +48,30 @@ class StudentController {
         }
     }
 
-    async listStudents(res: Response): Promise<void> {
+    async listStudents(_req: Request, res: Response): Promise<void> {
         try {
-            console.log("listUsers from backend");
-            
-            const students: IStudentRes|null = await this.studentService.listUsers()
-            res.json( students)
+            const students: IStudentRes | null = await this.studentService.listUsers()
+            if (students) {
+                res.json(students)
+            } else {
+                res.status(404).json({ error: "No students found", status: false });
+            }
         } catch (error) {
-            // console.error("Error in listStudents:", error);
-            // res.json({ error: "Failed to fetch students", status: false, statusCode: 500 })
+            console.error("Error in listStudents:", error);
+            res.json({ error: "Failed to fetch students", status: false, statusCode: 500 })
         }
     }
+    async blockAndUnblock(req: Request, res: Response): Promise<void> {
+        try {
+            const {id}= req.params
+            const user = await this.studentService.findAndBlockUnblockUser(id, req.body.status)
+
+            res.json({ user, message: "User blocked successfully", status: true, statusCode: 200 })
+        } catch (error) {
+            
+        }
+    }
+    
 
 }
 

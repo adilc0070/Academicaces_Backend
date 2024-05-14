@@ -51,6 +51,13 @@ class StudentRepo {
             throw error
         }
     }
+    async blockStatus(_id: string,status: boolean): Promise<IStudent | null> {
+        try {
+            return await student.findByIdAndUpdate(_id, { verified: !status}, { new: true })
+        } catch (error) {
+            throw error
+        }
+    }
     
 }
 

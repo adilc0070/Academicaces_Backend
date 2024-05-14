@@ -98,6 +98,13 @@ class StudentServices {
             throw error
         }
     }
+    async findAndBlockUnblockUser(id: string, status: boolean): Promise<IStudent | null> {
+        try {            
+            return await this.studentRep.blockStatus(id, status)
+        } catch (error) {
+            throw error
+        }
+    }
 
 }
 

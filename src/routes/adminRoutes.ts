@@ -1,4 +1,4 @@
-import express,{Router}  from "express";
+import express, { Router } from "express";
 
 // import AdminController from "../controllers/adminController";
 // import AdminServices from "../services/adminService";
@@ -12,11 +12,13 @@ import OtpRepo from "../repositories/otpRepository";
 
 
 // let adminController=new AdminController(new AdminServices(new AdminRepository()));
-let studentController=new StudentController(new StudentServices(new StudentRepo(),new OtpRepo()));
+let studentController = new StudentController(new StudentServices(new StudentRepo(), new OtpRepo()));
 
 
-let adminRoute:Router = express.Router();
-adminRoute.get('/listUser',studentController.listStudents.bind(studentController))
+let adminRoute: Router = express.Router();
+adminRoute.get('/listUser', studentController.listStudents.bind(studentController))
+adminRoute.patch('/changeStatus/:id', studentController.blockAndUnblock.bind(studentController))
 // adminRoute.get('/listInstructor',studentController.listInstructors.bind(studentController))
+
 
 export default adminRoute
