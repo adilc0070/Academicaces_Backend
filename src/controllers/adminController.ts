@@ -12,18 +12,20 @@ class AdminController {
 
     constructor(adminService: AdminServices) {
         this.adminService = adminService
-        
+
     }
 
     async adminLogin(req: Request, res: Response): Promise<void> {
         try {
-            const { email, password }: IAdmin = req.body
+            const { email, password }: IAdmin = req.body.data
             const admin: IAdminRes | null = await this.adminService.authAdmin(email, password)
-            if (admin?.token) setCookie(res, 'adminToken', admin.token)
-            res.status(200).json({ admin, message: "Login successful", status: true, statusCode: 200 })
+            if (admin?.token) {                
+                setCookie(res, 'adminToken', admin.token)
+                res.json({ admin, message: "Login successful", status: true, statusCode: 200 })
+            }else res.json({ error: "Invalid email or password", status: false, statusCode: 400 })
         } catch (error) {
             console.error("Error in adminLogin:", error);
-            res.status(500).json({ error: "Failed to login", status: false, statusCode: 500 })
+            res.json({ error: "Failed to login", status: false, statusCode: 500 })
         }
     }
     async createAdmin(): Promise<any> {
@@ -37,7 +39,7 @@ class AdminController {
             console.error("Error in createADemoAdmin:", error);
         }
     }
-    
+
 
 
 }

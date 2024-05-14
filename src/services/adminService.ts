@@ -20,7 +20,7 @@ class AdminServices {
                     const token: string = generateToken(admin);
                     return { admin, token, status: true, message: 'successful' };
                 } else {
-                    return { status: false, message: 'Incorrect password' };
+                    return { status: false, message: 'Incorrect password', admin };
                 }
             } else {
                 return { status: false, message: 'admin not found' };

@@ -15,9 +15,10 @@ const studentController = new StudentController(new StudentServices(new StudentR
 
 const authRoute: Router = express.Router()
 authRoute.get('/admin', adminController.createAdmin)
-authRoute.post('/admin/login', adminController.adminLogin)
+authRoute.post('/admin/login', adminController.adminLogin.bind(adminController))
 
 authRoute.post('/user/signUp', studentController.signUpUser.bind(studentController))
+authRoute.post('/user/signIn', studentController.signInUser.bind(studentController))
 authRoute.post('/user/verifyOtp/', studentController.verifyUser.bind(studentController))
 
 authRoute.get('/', (_, res) => {

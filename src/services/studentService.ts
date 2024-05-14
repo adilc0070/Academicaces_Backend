@@ -6,6 +6,7 @@ import StudentRepo from "../repositories/studentRepository"
 import { generateToken } from "../utils/jwt";
 import { sendVerifyMail } from "../utils/otpVerification";
 import bycrypt from "bcrypt"
+import { Res } from "../interfaces/commonn";
 
 
 class StudentServices {
@@ -50,12 +51,12 @@ class StudentServices {
     async verifyOtp(email: string, otp: string): Promise<IStudentRes | void> {
         try {
             let userexist: IStudent | null = await this.studentRep.findUserByEmail(email)
-            if (!userexist)  throw new Error("User not found")
+            if (!userexist) throw new Error("User not found")
             let otpData: IOtp | null = await this.otpRepo.findOtpByEmail(email)
             if (!otpData) throw new Error("Otp not found")
 
             if (otpData.otp !== otp) return { status: false, message: "Invalid otp" }
-            else userexist.verified=true
+            else userexist.verified = true
 
             let userData: IStudent | null = await this.studentRep.findByIdAndUpdate(userexist._id, userexist)
             if (userData) await this.otpRepo.deleteOtp(email)
@@ -70,9 +71,11 @@ class StudentServices {
     async authUser(email: string, password: string): Promise<IStudentRes | null> {
         try {
             let userData: IStudent | null = await this.studentRep.findUserByEmail(email)
+
             if (!userData) throw new Error("User not found")
             else {
                 let isPasswordValid: boolean = await bycrypt.compare(password, userData.password)
+
                 if (isPasswordValid) {
                     let token: string = generateToken(userData)
                     return { userData, token, status: true, message: 'successful' }
@@ -86,9 +89,10 @@ class StudentServices {
             throw error
         }
     }
-    async listUsers(): Promise<IStudent[] | null> {
+    async listUsers(): Promise<Res> {
         try {
-            return await this.studentRep.findUsers()
+            let students: IStudent[] | null = await this.studentRep.findUsers()
+            return {data:students, status: true, message: 'users list'}
         } catch (error) {
             console.error("Error in listUsers:", error);
             throw error

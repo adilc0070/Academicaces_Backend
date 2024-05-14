@@ -4,6 +4,8 @@ import { IAdmin } from "../interfaces/adminInterface";
 class AdminRepository {
     async findAdminByEmail(email: string): Promise<IAdmin | null> {
         try {
+            console.log('email', email);
+            
             const user = await Admin.findOne({ email: email });
             return user;
         } catch (error) {

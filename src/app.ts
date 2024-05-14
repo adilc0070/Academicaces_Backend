@@ -14,8 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-    origin: ["http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: [`${process.env.ORIGIN_URL}`],
+    methods: ["GET", "POST", "PUT"],
     credentials: true,
 }))
 
@@ -27,6 +27,10 @@ app.use('/admin', adminRoute)
 app.use('*', (_, res) => {
     res.send("Hello Worldsaddsa!");
 })
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error(err.stack);
+    res.status(500).send('Something went wrong!');
+  });
 // Start the server
 app.listen(process.env.PORT, () => {
     console.log("Server is running on port 3000 \n\n http://localhost:3000");

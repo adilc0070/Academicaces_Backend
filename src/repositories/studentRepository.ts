@@ -30,7 +30,7 @@ class StudentRepo {
     }
     async findUsers(): Promise<IStudent[] | null> {
         try {
-            const users: IStudent[] | null = await student.find().exec()
+            const users: IStudent[] | null = await student.find()
             return users
         } catch (error) {
             throw error
