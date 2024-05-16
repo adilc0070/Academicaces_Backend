@@ -11,18 +11,25 @@ import OtpRepo from "../repositories/otpRepository"
 
 
 const adminController = new AdminController(new AdminServices(new AdminRepository()))
-const studentController = new StudentController(new StudentServices(new StudentRepo(),new OtpRepo()))
+const studentController = new StudentController(new StudentServices(new StudentRepo(), new OtpRepo()))
 
 const authRoute: Router = express.Router()
 authRoute.get('/admin', adminController.createAdmin)
 authRoute.post('/admin/login', adminController.adminLogin.bind(adminController))
 
+
 authRoute.post('/user/signUp', studentController.signUpUser.bind(studentController))
 authRoute.post('/user/signIn', studentController.signInUser.bind(studentController))
 authRoute.post('/user/verifyOtp/', studentController.verifyUser.bind(studentController))
+authRoute.post('/user/forgetPassword')
+authRoute.post('/user/resetPassword')
 
-authRoute.get('/', (_, res) => {
-    res.send("Hello Worldsaddsa!");
-})
+
+
+authRoute.post('instructor/signUp',)
+authRoute.post('/instructor/SignIn',)
+authRoute.post('/instructor/verifyOtp',)
+authRoute.post('/instructor/forgetPassword',)
+authRoute.post('/instructor/resetPassword',)
 
 export default authRoute

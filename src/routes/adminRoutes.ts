@@ -18,7 +18,7 @@ let studentController = new StudentController(new StudentServices(new StudentRep
 let adminRoute: Router = express.Router();
 adminRoute.get('/listUser', studentController.listStudents.bind(studentController))
 adminRoute.patch('/changeStatus/:id', studentController.blockAndUnblock.bind(studentController))
-// adminRoute.get('/listInstructor',studentController.listInstructors.bind(studentController))
+
 
 
 export default adminRoute

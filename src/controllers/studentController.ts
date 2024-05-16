@@ -29,7 +29,8 @@ class StudentController {
         try {
             const { email, password }: IStudent = req.body
             const user = await this.studentService.authUser(email, password)
-            if (user?.token) setCookie(res, 'userToken', user.token)
+            if (user?.token && user?.userData?.verified===true) setCookie(res, 'userToken', user.token)
+            else res.json({ error: "Invalid email or password", status: false, statusCode: 400 })
             res.json({ user, message: "Login successful", status: true, statusCode: 200 })
         } catch (error) {
             console.error("Error in signInUser:", error);
