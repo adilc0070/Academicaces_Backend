@@ -1,8 +1,8 @@
 import bycrypt from "bcrypt"
 import InstructorRepo from "../repositories/instructorRepository"
 import OtpRepo from "../repositories/otpRepository"
-import { IInstructor, IInstructorRes } from "../interfaces/instructorInterrface"
-import { generateToken } from "../utils/jwt"
+import { IInstructor } from "../interfaces/instructorInterrface"
+// import { generateToken } from "../utils/jwt"
 import { sendVerifyMail } from "../utils/otpVerification"
 
 class InstructorService {
@@ -23,29 +23,40 @@ class InstructorService {
             throw error
         }
     }
-
-    async signUpInstructor(name: string, email: string, phone: string, password: string, bio: string, verified: boolean = false): Promise<IInstructorRes> {
+    async insertInstructor(name: string, email: string, password: string, bio: string, verified: boolean = false): Promise<IInstructor> {
         try {
-            if (!name || !email || !phone || !password || !bio) {
-                return { status: false, message: "Missing required fields" }
-            }
-            let checkMail: boolean = await this.emailEixist(email)
-            if (checkMail) return { status: false, message: "Email already in use" }
-
-            const otp: string = await sendVerifyMail(name, email)
-            console.log(otp);
+            console.log("inserting instructor", name, email, password, bio);
+            if (!name || !email || !password || !bio) throw new Error("Missing required fields")
+            let existOrNote: boolean = await this.emailEixist(email)
+            console.log("existOrNote", existOrNote);
+            if (existOrNote) throw new Error("Email already in use")
+            let otp: string = await sendVerifyMail(name, email)
             await this.otpRepo.createOtp(email, otp)
-
             let hashPassword: string = await bycrypt.hash(password, 10)
-            let instructor: IInstructor = await this.instructorRepo.signUpInstructor(name, email, phone, hashPassword, bio, verified)
-            if (!instructor) return { status: false, message: "Failed to create instructor" }
-
-            return { status: true, message: "Instructor created successfully", instructor }
+            let data: IInstructor = await this.instructorRepo.createInstructor(name, email, hashPassword, bio, verified)
+            if (!data) throw new Error("Failed to create user")
+            return data
         } catch (error) {
-            console.log("Error in signUpInstructor:", error);
+            console.error("Error in insertInstructor:", error);
+            throw error
+        }
+    }
+    async authInstructor(email: string, password: string): Promise<IInstructor | null> {
+        try {
+            const data: IInstructor | null = await this.instructorRepo.findInstructorByEmail(email)
+            if (!data) throw new Error("Invalid email")
+            let match = await bycrypt.compare(password, data.password)
+            if (!match) throw new Error("Invalid password")
+            return data
+        } catch (error) {
+            console.error("Error in login:", error);
             throw error
         }
     }
 
-   
+
+
+
 }
+
+export default InstructorService

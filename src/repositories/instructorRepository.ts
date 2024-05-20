@@ -1,19 +1,27 @@
 import Instructor from "../models/instructor";
-import { IInstructor, IInstructorRes } from "../interfaces/instructorInterrface";
+import { IInstructor, } from "../interfaces/instructorInterrface";
 
 
 
 class InstructorRepo {
-    async signUpInstructor(name: string, email: string, phone: string, password: string, bio: string, verified: boolean = false): Promise<IInstructor> {
+
+    async createInstructor(userName: string, email: string, password: string, bio: string, verified: boolean = false): Promise<IInstructor> {
+        console.log("createInstructor", userName, email, password, bio);
         try {
-            const newInstructor = new Instructor({
-                name, email, phone, password, bio, verified
+            const newInstructor: IInstructor | null = new Instructor({
+                name: userName,
+                email,
+                password,
+                bio,
+                verified
             })
+            console.log("newInstructor", newInstructor);
             return await newInstructor.save()
         } catch (error) {
             throw error
         }
     }
+
     async findInstructorByEmail(email: string): Promise<IInstructor | null> {
         try {
             const instructor: IInstructor | null = await Instructor.findOne({ email: email }).exec()
@@ -46,7 +54,7 @@ class InstructorRepo {
             throw error
         }
     }
-    
+
 }
 
 
