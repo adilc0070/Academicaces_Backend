@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-// import { IInstructor } from "../interfaces/instructorInterrface"
 import instructorService from "../services/instructorService"
+import { IInstructorRes } from "../interfaces/instructorInterrface"
 
 
 
@@ -34,18 +34,30 @@ class InstructorController {
             console.log('login', req.body.data);
             
             const { email, password } = req.body.data
-            const user = await this.instructorService.authInstructor(email, password)
-            if (user) {
-                console.log('user', user);
-                // setCookie(res, 'instructorToken', user.token)
-                res.json({ user, message: "Login successful", status: true, statusCode: 200 })
+            const instructor = await this.instructorService.authInstructor(email, password)
+            if (instructor) {
+                console.log('instructor', instructor);
+                // setCookie(res, 'instructorToken', instructor.token)
+                res.json({ instructor, message: "Login successful", status: true, statusCode: 200 })
             } else {
-                console.log('error', user); 
+                console.log('error', instructor); 
                 res.json({ error: "Invalid email or password", status: false, statusCode: 400 })
             }
         } catch (error) {
             console.error("Error in login:", error);
             res.json({ error: "Failed to login", status: false, statusCode: 500 })
+        }
+    }
+    async listAll(_req:Request,res:Response):Promise<void>{
+        try{
+            console.log('list Instructor controller');
+            let Instructors:IInstructorRes|null= await this.instructorService.instructorList()
+            if(Instructors)res.json(Instructors)
+            else res.status(400).json({error:"instructors Not found",status:false})
+
+        }catch(error){
+            console.error(error)
+            res.json({error:'listing is failed',status:false,statusCode:500})
         }
     }
 

@@ -9,6 +9,7 @@ import StudentServices from "../services/studentService";
 import StudentRepo from "../repositories/studentRepository";
 
 import OtpRepo from "../repositories/otpRepository";
+import { authMiddlewareAdmin } from "../middleware/authMidlewareAdmin";
 
 
 // let adminController=new AdminController(new AdminServices(new AdminRepository()));
@@ -16,6 +17,7 @@ let studentController = new StudentController(new StudentServices(new StudentRep
 
 
 let adminRoute: Router = express.Router();
+adminRoute.use(authMiddlewareAdmin)
 adminRoute.get('/listUser', studentController.listStudents.bind(studentController))
 adminRoute.patch('/changeStatus/:id', studentController.blockAndUnblock.bind(studentController))
 

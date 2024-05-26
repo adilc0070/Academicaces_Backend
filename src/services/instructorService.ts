@@ -4,6 +4,7 @@ import OtpRepo from "../repositories/otpRepository"
 import { IInstructor } from "../interfaces/instructorInterrface"
 // import { generateToken } from "../utils/jwt"
 import { sendVerifyMail } from "../utils/otpVerification"
+import { Res } from "../interfaces/commonn"
 
 class InstructorService {
     private instructorRepo: InstructorRepo
@@ -50,6 +51,14 @@ class InstructorService {
             return data
         } catch (error) {
             console.error("Error in login:", error);
+            throw error
+        }
+    }
+    async instructorList():Promise<Res>{
+        try {
+            let instructor:IInstructor[]|null=await this.instructorRepo.findInstrucotrs()
+            return {data:instructor,status:true,message:'intructors list'}
+        } catch (error) {
             throw error
         }
     }
