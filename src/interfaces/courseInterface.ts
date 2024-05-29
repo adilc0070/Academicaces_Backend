@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
 
-export interface ICategory extends Document {
-    name: string
+export interface ICourse extends Document {
+    name: string;
 }

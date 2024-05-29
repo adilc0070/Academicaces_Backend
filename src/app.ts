@@ -5,6 +5,7 @@ import authRoute from "./routes/authRoute";
 import cors from 'cors'
 import bodyParser from "body-parser";
 import adminRoute from "./routes/adminRoutes";
+import instructorRoute from "./routes/instructorRoutes";
 
 
 dotenv.config()
@@ -24,6 +25,7 @@ connectDB()
 
 app.use('/auth', authRoute)
 app.use('/admin', adminRoute)
+app.use('/instructor', instructorRoute)
 app.use('*', (_, res) => {
     res.send("Hello Worldsaddsa!");
 })
