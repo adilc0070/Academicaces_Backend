@@ -62,6 +62,14 @@ class InstructorService {
             throw error
         }
     }
+    async findId(email: string): Promise<IInstructor | null> {
+        try{
+            const data: IInstructor | null = await this.instructorRepo.findInstructorByEmail(email)
+            return data?._id
+        }catch(error){
+            throw error
+        }
+    }
 
 
 

@@ -1,34 +1,41 @@
-import { Request,Response } from "express";
+import { Request, Response } from "express";
 // import { ICourse } from "../interfaces/courseInterface";
 import CourseServices from "../services/courseService";
+import InstructorService from "../services/instructorService";
+import cloudinary from "../utils/coudinaryConfig";
 
-
-class CourseController{
+class CourseController {
 
     private courseService: CourseServices
+    private instructorService: InstructorService
 
-    constructor(courseService: CourseServices){
+    constructor(courseService: CourseServices,instructorService:InstructorService) {
         this.courseService = courseService
+        this.instructorService = instructorService
     }
 
-    async createCourse(req:Request,res:Response):Promise<void>{
-        try{
-            // const {courseName,description}=req.body
-            console.log('course ',req.body);
-            let{thumbnail, video, title, subtitle,category,topic }=req.body
-            console.log('course ',thumbnail, video, title, subtitle,category,topic);
+    async createCourse(req: Request, res: Response): Promise<void> {
+        try {
+            console.log('req.body',req.body);
+            let resss=await cloudinary.uploader.upload(req.body.thumbnail)
+            console.log(resss);
             
-            // const course= {}
-            // console.log('course ',course);
-            
-            // const createdCourse = await this.courseService.createCourse(course)
-            // if(createdCourse)res.json({createdCourse,message:'Course created successfully',status:true,statusCode:201})
-            // else res.json({error:'Failed to create course',status:false,statusCode:500})
-            return 
+            console.log('course ', req.body.thumbnail, req.body.video,);
+            let { thumbnail, video, title, subtitle, category, topic } = req.body
+            console.log('course ', thumbnail, video, title, subtitle, category, topic);
+            //find instructor by id
+            const instructor=await this.instructorService.findId(req.body.instructor)
+            console.log('instructor',instructor);
 
-        }catch(error){
+            // const course = await this.courseService.createCourse({ thumbnail, video, title, subtitle, category, topic, instructor })
+            
+            
+
+            return
+
+        } catch (error) {
             console.error(error)
-            res.json({error:'Failed to create course',status:false,statusCode:500})
+            res.json({ error: 'Failed to create course', status: false, statusCode: 500 })
         }
     }
 
@@ -43,16 +50,16 @@ class CourseController{
     //         res.json({error:'Failed to fetch courses',status:false,statusCode:500})
     //     }
     // }
-    async listCourses(_req:Request,res:Response):Promise<void>{
-        try{
+    async listCourses(_req: Request, res: Response): Promise<void> {
+        try {
             const courses = await this.courseService.listCourses()
-            if(courses)res.json({courses,message:'Courses fetched successfully',status:true,statusCode:200})
-            else res.json({error:'Failed to fetch courses',status:false,statusCode:500})
-        }catch(error){
+            if (courses) res.json({ courses, message: 'Courses fetched successfully', status: true, statusCode: 200 })
+            else res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
+        } catch (error) {
             console.error(error)
-            res.json({error:'Failed to fetch courses',status:false,statusCode:500})
+            res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
         }
     }
-}   
+}
 
 export default CourseController

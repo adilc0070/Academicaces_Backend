@@ -5,10 +5,10 @@ import authRoute from "./routes/authRoute";
 import cors from 'cors'
 import bodyParser from "body-parser";
 import adminRoute from "./routes/adminRoutes";
+dotenv.config()
 import instructorRoute from "./routes/instructorRoutes";
 
 
-dotenv.config()
 const app = express();
 app.use(bodyParser.json());
 app.use(express.json());
@@ -35,7 +35,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   });
 // Start the server
 app.listen(process.env.PORT, () => {
-    console.log("Server is running on port 3000 \n\n http://localhost:3000");
+    console.log("Server is running on port 3000 \n\nhttp://localhost:3000");
 });
 
 export default app;

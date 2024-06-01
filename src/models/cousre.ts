@@ -31,9 +31,12 @@ const courseScema=new Schema({
         default:false
     },
     enrolledStudents:{
-        type:Schema.Types.ObjectId,//this is the id of the students that have enrolled how can i discribe the type 
+        type:Schema.Types.ObjectId,
         ref:'Student',
-        required:true
+    },
+    lessons:{
+        type:Schema.Types.ObjectId,
+        ref:'Lesson',
     }
 })
 

@@ -10,7 +10,7 @@ import CourseRepo from "../repositories/courseRepository";
 
 
 let instructorController = new InstructorController(new InstructorServices(new InstructorRepo(),new OtpRepo()))
-let courseController=new CourseController(new CourseServices(new CourseRepo()))
+let courseController=new CourseController(new CourseServices(new CourseRepo()),new InstructorServices(new InstructorRepo(),new OtpRepo()))
 
 let instructorRoute: Router = express.Router();
 instructorRoute.get('/listInstructor', instructorController.listAll.bind(instructorController))

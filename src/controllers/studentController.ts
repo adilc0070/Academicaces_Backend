@@ -66,7 +66,7 @@ class StudentController {
         try {
             const {id}= req.params
             const user = await this.studentService.findAndBlockUnblockUser(id, req.body.status)
-
+            
             res.json({ user, message: "User blocked successfully", status: true, statusCode: 200 })
         } catch (error) {
             
