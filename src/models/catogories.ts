@@ -9,6 +9,10 @@ const categorySchema = new Schema({
         default: 0,
         type: Number,
     },
+    verified: {
+        type: Boolean,
+        default: true
+    }
 
 })
 

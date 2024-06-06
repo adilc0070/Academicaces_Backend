@@ -1,33 +1,31 @@
-import multer, { diskStorage } from 'multer'
-import path from 'path'
+import { Request } from 'express';
 
-const videoStorage = diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/videos/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, `${Date.now()}-video-${file.originalname}`)
-    }
-})
-
-const thumbnailStorage = diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/thumbnails/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, `${Date.now()}-thumbnail-${file.originalname}`)
-    }
-})
+import multer from "multer";
+import path from "path";
+import fs from 'fs';
 
 
-export const videoUpload = multer({ 
-    storage: videoStorage,
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.includes('video')) {
-            cb(null, true)
-        } else {
-            cb(null, false)
+const storage = multer.diskStorage({
+    destination: (_req: Request, file, cb) => {
+        console.log( "req.file", file );
+        
+        const uploadDirectory = path.join(__dirname, '../public/images')
+        if (!fs.existsSync(uploadDirectory)) {
+            fs.mkdirSync(uploadDirectory, { recursive: true });
         }
+        cb(null, uploadDirectory);
+    },
+    filename: (_req: Request, file, cb) => {
+        cb(
+            null,
+            file.fieldname + '-' + Date.now() + path.extname(file.originalname)
+        );
+    },
+});
+
+export const  multerMid = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1000 * 1024 * 1024 // 10MB
     }
- })
-export const thumbnailUpload = multer({ storage: thumbnailStorage })
+});

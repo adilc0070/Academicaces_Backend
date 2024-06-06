@@ -32,6 +32,8 @@ adminRoute.patch('/changeStatus/:id', studentController.blockAndUnblock.bind(stu
 adminRoute.post('/addCatagorie', catogariesController.createCatogary.bind(catogariesController))
 adminRoute.get('/listCatagories', catogariesController.getCatogaries.bind(catogariesController))
 adminRoute.get('/getCatagories/:id', catogariesController.getCatogaryById.bind(catogariesController))
+adminRoute.patch('/updateCatagory/:id', catogariesController.updateCatogary.bind(catogariesController))
+adminRoute.delete('/deleteCatagory/:id', catogariesController.deleteCatogary.bind(catogariesController))
 
 // adminRoute.post('/add')
 

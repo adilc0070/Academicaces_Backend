@@ -9,9 +9,7 @@ class CatagoriesController {
     }
     async createCatogary(req: Request, res: Response) {
         try {
-            console.log(req.body);
             const name  = req.body.value
-            console.log(name);
             
             const catogary = await this.catogariesService.createCatogary(name)
             res.status(200).json({ catogary })
@@ -34,6 +32,36 @@ class CatagoriesController {
             res.status(200).json({ catogary })
         } catch (error) {
             res.status(400).json({ error })
+        }
+    }   
+    async updateCatogary(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        const { name } = req.body;
+
+        
+        
+        try {
+            const updatedCategory = await this.catogariesService.updateCatogary(id, name);
+            if (updatedCategory) {
+                res.status(200).json(updatedCategory);
+            } else {
+                res.status(404).json({ message: 'Category not found' });
+            }
+        } catch (error) {
+            throw error
+        }
+    }
+    async deleteCatogary(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        try {
+            const deletedCatogary = await this.catogariesService.deleteCatogary(id);
+            if (deletedCatogary) {
+                res.status(200).json(deletedCatogary);
+            } else {
+                res.status(404).json({ message: 'Category not found' });
+            }
+        } catch (error) {
+            throw error
         }
     }
 

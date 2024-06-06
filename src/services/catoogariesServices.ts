@@ -31,7 +31,7 @@ class CatogariesService {
         }
     }
 
-    async updateCatogary(id: string, name: string): Promise<ICategory | null> {
+    async updateCatogary(id: string, name: string): Promise<ICategory[] | null> {
         try {
             return await this.catogariesRepo.updateCatogaryById(id, name);
         } catch (error) {

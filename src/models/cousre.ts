@@ -1,44 +1,62 @@
 import { Schema, model } from "mongoose";
-const courseScema=new Schema({
-    name:{
-        type:String,
-        required:true
+const courseScema = new Schema({
+    title: {
+        type: String,
+        required: true
     },
-    description:{
-        type:String,
-        required:true
+    subtitle: {
+        type: String,
+        required: true
     },
-    image:{
-        type:String,
-        required:true
+    thumbnail: {
+        type: String,
+        required: true
     },
-    price:{
-        type:Number,
-        required:true
+    price: {
+        type: Number,
+        required: true
     },
-    instructor:{
-        type:Schema.Types.ObjectId,
-        ref:'Instructor',
-        required:true
+    instructor: {
+        type: Schema.Types.ObjectId,
+        ref: 'Instructor',
+        required: true
     },
-    category:{
-        type:Schema.Types.ObjectId,
-        ref:'Category',
-        required:true
+    category: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
     },
-    verified:{
-        type:Boolean,
-        default:false
+    verified: {
+        type: Boolean,
+        default: false
     },
-    enrolledStudents:{
-        type:Schema.Types.ObjectId,
-        ref:'Student',
+    enrolledStudents: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Student',
+        }
+    ],
+    triler: {
+        type: String
     },
-    lessons:{
-        type:Schema.Types.ObjectId,
-        ref:'Lesson',
-    }
+    isBlock: {
+        type: Boolean,
+        default: false
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    chapters: [
+
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Chapter',
+
+        }
+    ]
+
 })
 
 
-export default model('Course',courseScema)
+export default model('Course', courseScema)

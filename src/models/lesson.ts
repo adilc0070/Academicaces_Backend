@@ -9,23 +9,24 @@ const lessonSchema = new Schema({
         type: String,
         required: true
     },
-    files: [
-        {
-            name: {
-                type: String
-            },
-            url: {
-                type: String
-            },
-            type: {
-                type: String
-            }
-        }
-    ],
+    notes: {
+        type: String,
+    },
+    files: {
+        type: [Schema.Types.Mixed],
+    },
+    video: {
+        type: [Schema.Types.Mixed],
+    },
     courseId: {
         type: Schema.Types.ObjectId,
         ref: 'Course',
         required: true
+    },
+    chapterId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Chapter',
+        // required: true
     }
 });
 

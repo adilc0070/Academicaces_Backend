@@ -23,8 +23,9 @@ class CatogariesRepo {
         return await catogories.findByIdAndDelete(id)
     }
 
-    async updateCatogaryById(id: string, name: string): Promise<ICategory | null> {
-        return await catogories.findByIdAndUpdate(id, { name })
+    async updateCatogaryById(id: string, name: string): Promise<ICategory[] | null> {
+        await catogories.findByIdAndUpdate(id, { name })
+        return this.getCatogaries()
     }
     async incrimentNos(id: string): Promise<ICategory | null> {
         return await catogories.findByIdAndUpdate(id, { $inc: { noCoures: 1 } })
@@ -32,6 +33,10 @@ class CatogariesRepo {
 
     async decrimentNos(id: string): Promise<ICategory | null> {
         return await catogories.findByIdAndUpdate(id, { $inc: { noCoures: -1 } })
+    }
+    async blockStatus(id: string, status: boolean): Promise<ICategory[] | null> {
+        await catogories.findByIdAndUpdate(id, { verified: !status }, { new: true })
+        return await this.getCatogaries()
     }
 }
 

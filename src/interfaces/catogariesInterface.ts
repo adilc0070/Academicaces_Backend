@@ -2,5 +2,6 @@ import { Document } from "mongoose";
 
 export interface ICategory extends Document {
     name: string,
-    noCoures: number
+    noCoures: number,
+    verified: boolean
 }

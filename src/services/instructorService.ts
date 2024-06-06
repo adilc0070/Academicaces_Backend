@@ -5,6 +5,7 @@ import { IInstructor } from "../interfaces/instructorInterrface"
 // import { generateToken } from "../utils/jwt"
 import { sendVerifyMail } from "../utils/otpVerification"
 import { Res } from "../interfaces/commonn"
+import { ObjectId } from "mongoose"
 
 class InstructorService {
     private instructorRepo: InstructorRepo
@@ -62,9 +63,10 @@ class InstructorService {
             throw error
         }
     }
-    async findId(email: string): Promise<IInstructor | null> {
+    async findId(email: string): Promise<ObjectId | null> {
         try{
-            const data: IInstructor | null = await this.instructorRepo.findInstructorByEmail(email)
+            console.log(email);
+            const data = await this.instructorRepo.findInstructorByEmail(email)
             return data?._id
         }catch(error){
             throw error
