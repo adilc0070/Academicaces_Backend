@@ -89,19 +89,27 @@ class StudentServices {
             throw error
         }
     }
-    async listUsers(): Promise<Res> {
+    async listUsers(page: number, limit: number): Promise<Res> {
         try {
-            let students: IStudent[] | null = await this.studentRep.findUsers()
-            return {data:students, status: true, message: 'users list'}
+            
+            const students: IStudent[] | null = await this.studentRep.findUsers(page, limit);
+            if (students) {
+                const total = await this.studentRep.countUsers(); // Get the total count of students
+                return { data: students, total, status: true, message: 'users list' };
+            } else {
+                return { data: [], total: 0, status: true, message: 'No users found' };
+            }
         } catch (error) {
             console.error("Error in listUsers:", error);
-            throw error
+            throw error;
         }
     }
-    async findAndBlockUnblockUser(id: string, status: boolean): Promise<IStudent[] | null> {
-        try {            
-            await this.studentRep.blockStatus(id, status)
-            return this.studentRep.findUsers()
+
+
+
+    async findAndBlockUnblockUser(id: string, status: boolean): Promise<IStudent| null> {
+        try {
+            return await this.studentRep.blockStatus(id, status)
         } catch (error) {
             throw error
         }

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import CatogariesService from "../services/catoogariesServices";
-import { ICategory } from "../interfaces/catogariesInterface";
+// import { ICategory } from "../interfaces/catogariesInterface"; 
 
 class CatagoriesController {
     private catogariesService: CatogariesService
@@ -17,14 +17,16 @@ class CatagoriesController {
             res.status(400).json({ error })
         }
     }
-    async getCatogaries(_req: Request, res: Response) {
+    async getCatogaries(req: Request, res: Response) {
         try {
-            const catogaries: ICategory[] = await this.catogariesService.getCatogaries()
-            res.status(200).json({ catogaries })
+            const { page = 1, limit = 8 } = req.query;
+            const { catogaries, total } = await this.catogariesService.getCatogaries(Number(page), Number(limit));
+            res.status(200).json({ catogaries, total });
         } catch (error) {
-            res.status(400).json({ error })
+            res.status(400).json({ error });
         }
     }
+    
     async getCatogaryById(req: Request, res: Response) {
         try {
             const { id } = req.params
@@ -57,6 +59,20 @@ class CatagoriesController {
             const deletedCatogary = await this.catogariesService.deleteCatogary(id);
             if (deletedCatogary) {
                 res.status(200).json(deletedCatogary);
+            } else {
+                res.status(404).json({ message: 'Category not found' });
+            }
+        } catch (error) {
+            throw error
+        }
+    }
+    async blockStatus(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        const { status } = req.body;
+        try {
+            const updatedCategory = await this.catogariesService.blockStatus(id, status);
+            if (updatedCategory) {
+                res.status(200).json(updatedCategory);
             } else {
                 res.status(404).json({ message: 'Category not found' });
             }

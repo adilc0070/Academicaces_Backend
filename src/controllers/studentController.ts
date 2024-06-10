@@ -14,6 +14,8 @@ class StudentController {
     async signUpUser(req: Request, res: Response): Promise<void> {
         try {
             const { userName, email, password, bio }: IStudent = req.body
+            console.log('email', email, 'password', password);
+            
             const user = await this.studentService.createUser(userName, email, password, bio)
             if (user) {
                 res.json({ user, message: "User created successfully", status: true, statusCode: 201 })
@@ -27,16 +29,22 @@ class StudentController {
     }
     async signInUser(req: Request, res: Response): Promise<void> {
         try {
-            const { email, password }: IStudent = req.body
-            const user = await this.studentService.authUser(email, password)
-            if (user?.token && user?.userData?.verified===true) setCookie(res, 'userToken', user.token)
-            else res.json({ error: "Invalid email or password", status: false, statusCode: 400 })
-            res.json({ user, message: "Login successful", status: true, statusCode: 200 })
+            const { email, password }: IStudent = req.body;
+            console.log('email', email, 'password', password);
+            
+            const user = await this.studentService.authUser(email, password);
+            if (user?.token && user?.userData?.verified === true) {
+                setCookie(res, 'userToken', user.token);
+                res.json({ user, message: "Login successful", status: true, statusCode: 200 });
+            } else {
+                res.json({ error: "Invalid email or password", status: false, statusCode: 400 });
+            }
         } catch (error) {
             console.error("Error in signInUser:", error);
-            res.json({ error: "Failed to login", status: false, statusCode: 500 })
+            res.json({ error: "Failed to login", status: false, statusCode: 500 });
         }
     }
+    
     async verifyUser(req: Request, res: Response): Promise<void> {
         try {
             let { email, otp } = req.body
@@ -49,19 +57,25 @@ class StudentController {
         }
     }
 
-    async listStudents(_req: Request, res: Response): Promise<void> {
+    async listStudents(req: Request, res: Response): Promise<void> {
         try {
-            const students: IStudentRes | null = await this.studentService.listUsers()
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10; // Set default limit to 3
+            
+            const students: IStudentRes | null = await this.studentService.listUsers(page, limit);
             if (students) {
-                res.json(students)
+                res.json(students);
             } else {
                 res.status(404).json({ error: "No students found", status: false });
             }
         } catch (error) {
             console.error("Error in listStudents:", error);
-            res.json({ error: "Failed to fetch students", status: false, statusCode: 500 })
+            res.json({ error: "Failed to fetch students", status: false, statusCode: 500 });
         }
     }
+    
+    
+    
     async blockAndUnblock(req: Request, res: Response): Promise<void> {
         try {
             const {id}= req.params

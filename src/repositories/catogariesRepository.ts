@@ -11,9 +11,15 @@ class CatogariesRepo {
         return await newCatogary.save()
     }
 
-    async getCatogaries(): Promise<ICategory[]> {
-        return await catogories.find({})
+    async getCatogaries(page: number, limit: number): Promise<ICategory[]> {
+        const skip = (page - 1) * limit;
+        return await catogories.find({}).skip(skip).limit(limit);
     }
+    
+    async getCatogariesCount(): Promise<number> {
+        return await catogories.countDocuments({});
+    }
+    
 
     async getCatogaryById(id: string): Promise<ICategory | null> {
         return await catogories.findById(id)
@@ -24,8 +30,11 @@ class CatogariesRepo {
     }
 
     async updateCatogaryById(id: string, name: string): Promise<ICategory[] | null> {
-        await catogories.findByIdAndUpdate(id, { name })
-        return this.getCatogaries()
+        return await catogories.findByIdAndUpdate(id, { name }, { new: true })
+
+    }
+    async blockStatus(id: string, status: boolean): Promise<ICategory[] | null> {
+        return await catogories.findByIdAndUpdate(id, { isBlock: status }, { new: true })
     }
     async incrimentNos(id: string): Promise<ICategory | null> {
         return await catogories.findByIdAndUpdate(id, { $inc: { noCoures: 1 } })
@@ -33,10 +42,6 @@ class CatogariesRepo {
 
     async decrimentNos(id: string): Promise<ICategory | null> {
         return await catogories.findByIdAndUpdate(id, { $inc: { noCoures: -1 } })
-    }
-    async blockStatus(id: string, status: boolean): Promise<ICategory[] | null> {
-        await catogories.findByIdAndUpdate(id, { verified: !status }, { new: true })
-        return await this.getCatogaries()
     }
 }
 

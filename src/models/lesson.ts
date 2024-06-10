@@ -18,15 +18,13 @@ const lessonSchema = new Schema({
     video: {
         type: [Schema.Types.Mixed],
     },
-    courseId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Course',
-        required: true
-    },
     chapterId: {
         type: Schema.Types.ObjectId,
         ref: 'Chapter',
         // required: true
+    },
+    order:{
+        type: Number
     }
 });
 

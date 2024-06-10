@@ -1,21 +1,30 @@
 import { Request, Response } from "express";
+import {unlink} from 'fs'
 // import { ICourse } from "../interfaces/courseInterface";
 import CourseServices from "../services/courseService";
 import InstructorService from "../services/instructorService";
 import cloudinary from "../utils/coudinaryConfig";
 import { ICourse, ICourseRes } from "../interfaces/courseInterface";
-import lesson from "../models/lesson";
+import LessonService from "../services/lessonService";
+import chapterService from "../services/chapterService";
+import CatogariesService from "../services/catoogariesServices";
 
 
 class CourseController {
 
     private courseService: CourseServices
     private instructorService: InstructorService
+    private lessonService: LessonService
+    private chapterService: chapterService
+    private categoryService: CatogariesService
 
 
-    constructor(courseService: CourseServices, instructorService: InstructorService) {
+    constructor(courseService: CourseServices, instructorService: InstructorService, lessonService: LessonService, chapterService: chapterService, categoryService: CatogariesService) {
         this.courseService = courseService
         this.instructorService = instructorService
+        this.lessonService = lessonService
+        this.chapterService = chapterService
+        this.categoryService = categoryService
     }
 
     async createCourse(req: any, res: Response): Promise<ICourseRes | void> {
@@ -25,14 +34,24 @@ class CourseController {
             await cloudinary.uploader.upload(req.files?.thumbnail[0].path, {
                 folder: 'Academicaces',
                 resource_type: 'image'
-            }).then((result) => { thumbnailurl = result.url }).catch((error) => {
+            }).then((result) => { 
+                thumbnailurl = result.url 
+                unlink(req.files?.thumbnail[0].path, (err) => {
+                    if (err) throw err
+                })
+            }).catch((error) => {
                 throw error
             })
 
             await cloudinary.uploader.upload(req.files?.video[0].path, {
                 folder: 'Academicaces',
                 resource_type: 'video'
-            }).then((result) => { videourl = result.url }).catch((error) => {
+            }).then((result) => { 
+                videourl = result.url
+                unlink(req.files?.video[0].path, (err) => {
+                    if (err) throw err
+                })
+            }).catch((error) => {
                 throw error
             })
 
@@ -47,30 +66,16 @@ class CourseController {
             res.json({ course, message: 'Course created successfully', status: true, statusCode: 200 })
 
         } catch (error) {
-            console.error(error)
-            res.json({ error: 'Failed to create course', status: false, statusCode: 500 })
+            res.json({ error: `Failed to create course (${error})`, status: false, statusCode: 500 })
         }
     }
 
-    // async getCourses(_req:Request,res:Response):Promise<void>{
-    //     try{
-    //         const courses = await this.courseService.getCourses()
-    //         if(courses)res.json({courses,message:'Courses fetched successfully',status:true,statusCode:200})
-    //         else res.json({error:'Failed to fetch courses',status:false,statusCode:500})
-
-    //     }catch(error){
-    //         console.error(error)
-    //         res.json({error:'Failed to fetch courses',status:false,statusCode:500})
-    //     }
-    // }
     async listCourses(req: Request, res: Response): Promise<void> {
         try {
             const id = req.body.data
             let instructor = await this.instructorService.findId(id)
-            console.log("instructor id", instructor);
 
             const courses: ICourse[] | null = await this.courseService.listCourses(instructor)
-            console.log("courses", courses);
 
             if (courses) res.json({ courses, message: 'Courses fetched successfully', status: true, statusCode: 200 })
             else res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
@@ -88,7 +93,7 @@ class CourseController {
                 let resultFile: any = '';
 
                 req.files.forEach((file: any) => {
-                    if (file.fieldname === lesson.fileName ) {
+                    if (file.fieldname === lesson.fileName) {
                         resultFile = file;
                     }
                 });
@@ -98,7 +103,7 @@ class CourseController {
                 let resultFile: any = '';
 
                 req.files.forEach((file: any) => {
-                    if (file.fieldname === lesson.videoName ) {
+                    if (file.fieldname === lesson.videoName) {
                         resultFile = file;
                     }
                 });
@@ -108,47 +113,87 @@ class CourseController {
 
             // Process sections and their lectures
             const processedSections = await Promise.all(sections.map(async (section: any) => {
-                console.log("section", section);
 
                 const processedLectures = await Promise.all(section.lectures.map(async (lecture: any) => {
-                    console.log("lecture", lecture);
-                    // console.log("video", findingFile(req, lecture));
+                    let filesUrl = ''
+                    let videoUrl = ''
+                    if (findingFile(req, lecture)) {
 
-                    const newLesson = new lesson({
+                        await cloudinary.uploader.upload(findingFile(req, lecture).path, {
+                            folder: 'Academicaces',
+                            resource_type: 'auto'
+                        }).then((result) => { 
+                            filesUrl = result.url
+                            unlink(findingFile(req, lecture).path, (err) => {
+                                if (err) throw err
+                            })
+                        }).catch((error) => {
+                            throw error
+                        })
+                    }
+                    if (findingVideo(req, lecture)) {
+                        let type = findingVideo(req, lecture).mimetype.split('/')[0]
+                        await cloudinary.uploader.upload(findingVideo(req, lecture).path, {
+                            folder: 'Academicaces',
+                            resource_type: type
+                        }).then((result) => { 
+                            videoUrl = result.url
+                            unlink(findingVideo(req, lecture).path, (err) => {
+                                if (err) throw err
+                            }) 
+                        }).catch((error) => {
+                            throw error
+                        })
+                    }
+                    const newLesson = await this.lessonService.createLesson({
                         name: lecture.name,
                         description: lecture.description,
                         notes: lecture.notes,
-                        files: findingFile(req, lecture),
-                        video: findingVideo(req, lecture),
-                        courseId: id, // Assuming the course ID is provided in the request
-                        section: section.id // Assuming each lecture belongs to a section
-                    });
+                        files: filesUrl,
+                        video: videoUrl,
+                        order: section.id
+                    })
 
-                    console.log("newLesson", newLesson);
-
-                    const savedLesson = await newLesson.save();
-                    return savedLesson._id; // Return the ID of the saved lesson
+                    return newLesson._id
                 }));
+                
 
-                return {
-                    id: section.id,
-                    name: section.name,
-                    lectures: processedLectures
-                };
+                return await this.chapterService.createChapter(
+                    {
+                        order: section.id,
+                        name: section.name,
+                        lessonsID: processedLectures,
+                        courseID: id,
+                        isFree: section.isFree ? true : false
+                    });
             }));
-
-            console.log('Processed Sections:', processedSections);
-            processedSections.forEach(section => {
-                console.log("section", section);
-            })
-
-            // Update the course with the saved lessons
-            // await Course.findByIdAndUpdate(id, { $push: { lessons: { $each: processedSections.map(section => section.lectures) } } });
-
-            res.json({ message: 'Curriculum added successfully', status: true, statusCode: 200 });
+            
+            let result = await this.courseService.addChapter(id, processedSections.map(section => section._id));
+            if (result) await this.categoryService.incrimentNos(result.category.toString());
+            res.json({result, message: 'Curriculum added successfully', status: true, statusCode: 200 });
         } catch (error) {
             console.error('Error adding curriculum:', error);
             res.json({ error: 'Failed to add curriculum', status: false, statusCode: 500 });
+        }
+    }
+    async listAllCourses(_req: Request, res: Response): Promise<void> {
+        try {
+            const courses = await this.courseService.listAll();
+            res.json({ courses, message: 'Courses fetched successfully', status: true, statusCode: 200 });
+        } catch (error) {
+            console.error('Error listing courses:', error);
+            res.json({ error: 'Failed to list courses', status: false, statusCode: 500 });
+        }
+    }
+    async verifyCourse(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const status  = req.body.status;
+            const result = await this.courseService.verifyCourse(id, !status);
+            res.json({ result, message: 'Course verified successfully', status: true, statusCode: 200 });
+        } catch (error) {
+            console.error('Error verifying course:', error);
+            res.json({ error: 'Failed to verify course', status: false, statusCode: 500 });
         }
     }
 

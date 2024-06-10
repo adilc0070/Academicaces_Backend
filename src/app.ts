@@ -27,7 +27,7 @@ app.use('/auth', authRoute)
 app.use('/admin', adminRoute)
 app.use('/instructor', instructorRoute)
 app.use('*', (_, res) => {
-    res.send("Hello Worldsaddsa!");
+    res.json({ message: "Hello Worlds" });
 })
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error(err.stack);

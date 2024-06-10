@@ -7,22 +7,24 @@ class CatogariesService {
     constructor(catogariesRepo: CatogariesRepo) {
         this.catogariesRepo = catogariesRepo
     }
-    async createCatogary(name: string): Promise<ICategory[] | null> {
+    async createCatogary(name: string): Promise<ICategory | null> {
         try {
-            await this.catogariesRepo.createCatogary(name);
-            return await this.getCatogaries()
-        } catch (error) {
-            throw error
-        }
-    }
-    async getCatogaries(): Promise<ICategory[]> {
-        try {
+            return await this.catogariesRepo.createCatogary(name);
 
-            return await this.catogariesRepo.getCatogaries();
         } catch (error) {
             throw error
         }
     }
+    async getCatogaries(page: number, limit: number): Promise<{ catogaries: ICategory[], total: number }> {
+        try {
+            const catogaries = await this.catogariesRepo.getCatogaries(page, limit);
+            const total = await this.catogariesRepo.getCatogariesCount();
+            return { catogaries, total };
+        } catch (error) {
+            throw error;
+        }
+    }
+    
     async getCatogaryById(id: string): Promise<ICategory | null> {
         try {
             return await this.catogariesRepo.getCatogaryById(id);
@@ -45,6 +47,13 @@ class CatogariesService {
             throw error
         }
     }
+    async blockStatus(id: string, status: boolean): Promise<ICategory[] | null> {
+        try {
+            return await this.catogariesRepo.blockStatus(id, status);
+        } catch (error) {
+            throw error
+        }
+    }
 
     async incrimentNos(id: string): Promise<ICategory | null> {
         try {
@@ -60,6 +69,7 @@ class CatogariesService {
             throw error
         }
     }
+    
 }
 
 export default CatogariesService

@@ -7,7 +7,6 @@ class LessonService {
     }
 
     async createLesson(lessonData: any) {
-        console.log('lessonData', lessonData);
         return this.lessonRepo.createLesson(lessonData)
 
     }

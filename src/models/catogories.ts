@@ -9,9 +9,9 @@ const categorySchema = new Schema({
         default: 0,
         type: Number,
     },
-    verified: {
+    isBlock: {
         type: Boolean,
-        default: true
+        default: false
     }
 
 })

@@ -12,7 +12,7 @@ class StudentRepo {
                 password,
                 bio,
                 verified,
-                role:"student"
+                role: "student"
             })
             return await newStudent.save()
         } catch (error) {
@@ -28,14 +28,16 @@ class StudentRepo {
             throw error
         }
     }
-    async findUsers(): Promise<IStudent[] | null> {
+    async findUsers(page: number, limit: number): Promise<IStudent[] | null> {
         try {
-            const users: IStudent[] | null = await student.find()
-            return users
+            const skip = (page - 1) * limit;
+            const users: IStudent[] | null = await student.find().skip(skip).limit(limit);
+            return users;
         } catch (error) {
-            throw error
+            throw error;
         }
-    }
+    }    
+
     async findById(_id: string): Promise<IStudent | null> {
         try {
             return await student.findById(_id).exec()
@@ -43,22 +45,29 @@ class StudentRepo {
             throw error
         }
     }
-    async findByIdAndUpdate(_id: string, data:IStudent): Promise<IStudent | null> {
+    async findByIdAndUpdate(_id: string, data: IStudent): Promise<IStudent | null> {
         try {
-            return await student.findByIdAndUpdate({_id}, data, { new: true })
+            return await student.findByIdAndUpdate({ _id }, data, { new: true })
         } catch (error) {
             console.log("error in find by id and update student", error);
             throw error
         }
     }
-    async blockStatus(_id: string,status: boolean): Promise<IStudent | null> {
+    async blockStatus(_id: string, status: boolean): Promise<IStudent | null> {
         try {
-            return await student.findByIdAndUpdate(_id, { verified: !status}, { new: true })
+            return await student.findByIdAndUpdate(_id, { verified: !status }, { new: true })
         } catch (error) {
             throw error
         }
     }
-    
+    async countUsers(): Promise<number> {
+        try {
+            return await student.countDocuments()
+        } catch (error) {
+            throw error
+        }
+    }
+
 }
 
 

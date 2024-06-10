@@ -2,29 +2,31 @@ import chapters from "../models/chapters";
 
 class ChapterRepo {
 
-    async createChapter({name,description, lessonId, courseId}: any) {
-        return await new chapters({name,description, lessonId, courseId}).save();
+    async createChapter({ name, order, lessonsID, courseID, isFree }: any) {
+        console.log("createChapter repo", name, order, lessonsID, courseID, isFree);
+        return await new chapters({ name, order, lessonsID, courseID, isFree }).save()
     }
-
     async getChapter(id: string) {
-        return await chapters.findById(id);
+        return await chapters.findById(id)
+    }
+    async updateChapter(id: string, data: any) {
+        return await chapters.findByIdAndUpdate(id, data, { new: true })
+    }
+    async removeChapter(id: string) {
+        return await chapters.findByIdAndDelete(id)
+    }
+    async addLesson(id: string, data: any) {
+        return await chapters.findByIdAndUpdate(id, { $push: { lessons: data } }, { new: true })
+    }
+    async removeLesson(id: string, lessonId: string) {
+        return await chapters.findByIdAndUpdate(id, { $pull: { lessons: { _id: lessonId } } }, { new: true })
     }
 
-    async getChapters() {
-        return await chapters.find();
+    async getChapters(id: string) {
+        return await chapters.find({ courseId: id }).sort({ order: 1 })
     }
-
-    async updateChapter(id: string, chapter: any) {
-        return await chapters.findByIdAndUpdate(id, chapter, { new: true });
-    }
-
-    async deleteChapter(id: string) {
-        return await chapters.findByIdAndDelete(id);
-    }
-
-    async blockStatus(id: string, status: boolean) {
-        await chapters.findByIdAndUpdate(id, { verified: !status }, { new: true });
-        return await this.getChapters();
+    async getChapterByLesson(id: string) {
+        return await chapters.find({ lessonId: id })
     }
 }
 
