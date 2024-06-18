@@ -13,6 +13,14 @@ class LessonRepo {
             throw error;
         }
     }
+    async updateLesson(_id: string, data: any) {
+        try {
+            return await Lesson.findByIdAndUpdate({ _id }, data, {new: true })
+        } catch (error) {
+            console.log("error in update lesson", error);
+            throw error
+        }
+    }
 }
 
 export default LessonRepo;

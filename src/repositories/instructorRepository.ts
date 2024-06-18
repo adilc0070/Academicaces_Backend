@@ -54,6 +54,14 @@ class InstructorRepo {
             throw error
         }
     }
+    async verification(email: string, verified: boolean): Promise<IInstructor | null> {
+        try {
+            const instructor: IInstructor | null = await Instructor.findOneAndUpdate({ email: email }, { verified: verified }).exec()
+            return instructor
+        } catch (error) {
+            throw error
+        }
+    }
 
 }
 

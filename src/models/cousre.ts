@@ -12,6 +12,9 @@ const courseScema = new Schema({
         type: String,
         required: true
     },
+    topic: {
+        type: String,
+    },
     price: {
         type: Number,
         required: true

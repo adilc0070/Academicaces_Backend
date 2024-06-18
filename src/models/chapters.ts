@@ -7,7 +7,7 @@ const chapterSchema = new Schema({
     },
     order: {
         type: Number,
-        required: true
+        // required: true
     },
     lessonsID: [
         {

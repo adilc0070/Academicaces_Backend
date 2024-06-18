@@ -2,10 +2,10 @@ import express, { } from "express";
 import dotenv from 'dotenv'
 import connectDB from '../migrations/index'
 import authRoute from "./routes/authRoute";
+dotenv.config()
 import cors from 'cors'
 import bodyParser from "body-parser";
 import adminRoute from "./routes/adminRoutes";
-dotenv.config()
 import instructorRoute from "./routes/instructorRoutes";
 
 
@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
     origin: [`${process.env.ORIGIN_URL}`],
-    methods: ["GET", "POST", "DELETE","PATCH"],
+    methods: ["GET", "POST", "DELETE","PATCH","PUT"],
     credentials: true,
 }))
 

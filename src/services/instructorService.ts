@@ -33,7 +33,8 @@ class InstructorService {
             console.log("existOrNote", existOrNote);
             if (existOrNote) throw new Error("Email already in use")
             let otp: string = await sendVerifyMail(name, email)
-            await this.otpRepo.createOtp(email, otp)
+            let otpData = await this.otpRepo.createOtp(email, otp)
+            otpData
             let hashPassword: string = await bycrypt.hash(password, 10)
             let data: IInstructor = await this.instructorRepo.createInstructor(name, email, hashPassword, bio, verified)
             if (!data) throw new Error("Failed to create user")
@@ -55,20 +56,33 @@ class InstructorService {
             throw error
         }
     }
-    async instructorList():Promise<Res>{
+    async instructorList(): Promise<Res> {
         try {
-            let instructor:IInstructor[]|null=await this.instructorRepo.findInstrucotrs()
-            return {data:instructor,status:true,message:'intructors list'}
+            let instructor: IInstructor[] | null = await this.instructorRepo.findInstrucotrs()
+            return { data: instructor, status: true, message: 'intructors list' }
         } catch (error) {
             throw error
         }
     }
     async findId(email: string): Promise<ObjectId | null> {
-        try{
-            console.log(email);
+        try {
             const data = await this.instructorRepo.findInstructorByEmail(email)
             return data?._id
-        }catch(error){
+        } catch (error) {
+            throw error
+        }
+    }
+    async verification(email: string, otp: string): Promise<any> {
+        try {
+            let otpData = await this.otpRepo.findOtpByEmail(email)
+            console.log("verification service", otpData)
+            if (otpData?.otp !== otp) throw new Error('invalid otp')
+            else {
+                await this.instructorRepo.verification(email, true)
+                await this.otpRepo.deleteOtp(email)
+            }
+            return await this.instructorRepo.findInstructorByEmail(email)
+        } catch (error) {
             throw error
         }
     }

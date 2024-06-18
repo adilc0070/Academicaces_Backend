@@ -15,7 +15,8 @@ class chapterService{
         return await this.chapterRepo.getChapter(id)
     }
     async updateChapter(id: string, data: any) {
-        return await this.chapterRepo.updateChapter(id, data)
+        if(id=='-Infinity') return await this.chapterRepo.createChapter(data)       
+        else return await this.chapterRepo.updateChapter(id, data)
     }
     async removeChapter(id: string) {
         return await this.chapterRepo.removeChapter(id)

@@ -16,10 +16,9 @@ class InstructorController {
     async create(req: Request, res: Response): Promise<void> {
         try {
             const { userName, email, password, bio } = req.body.data
-            console.log('create', userName, email, password, bio);
-            
             const user = await this.instructorService.insertInstructor(userName, email, password, bio)
             if (user) {
+                
                 res.json({ user, message: "User created successfully", status: true, statusCode: 201 })
             } else {
                 res.json({ error: "Failed to create user", status: false, statusCode: 500 })
@@ -31,12 +30,10 @@ class InstructorController {
     }
     async login(req: Request, res: Response): Promise<void> {
         try {
-            console.log('login', req.body.data);
             
             const { email, password } = req.body.data
             const instructor = await this.instructorService.authInstructor(email, password)
             if (instructor) {
-                console.log('instructor', instructor);
                 // setCookie(res, 'instructorToken', instructor.token)
                 res.json({ instructor, message: "Login successful", status: true, statusCode: 200 })
             } else {
@@ -50,7 +47,6 @@ class InstructorController {
     }
     async listAll(_req:Request,res:Response):Promise<void>{
         try{
-            console.log('list Instructor controller');
             let Instructors:IInstructorRes|null= await this.instructorService.instructorList()
             if(Instructors)res.json(Instructors)
             else res.status(400).json({error:"instructors Not found",status:false})
@@ -60,7 +56,18 @@ class InstructorController {
             res.json({error:'listing is failed',status:false,statusCode:500})
         }
     }
-
+    async verification(req:Request,res:Response):Promise<void>{
+        try{
+            console.log('req.body',req.body);
+            const {email,otp}=req.body.data
+            
+            const result=await this.instructorService.verification(email,otp)
+            res.json({user:result,message:'verification is success',status:true,statusCode:200})
+        }catch(error){
+            console.error(error)
+            res.json({error:'verification is failed',status:false,statusCode:500})
+        }
+    }
 }
 
 export default InstructorController

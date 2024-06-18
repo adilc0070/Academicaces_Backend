@@ -30,12 +30,14 @@ class StudentController {
     async signInUser(req: Request, res: Response): Promise<void> {
         try {
             const { email, password }: IStudent = req.body;
-            console.log('email', email, 'password', password);
             
             const user = await this.studentService.authUser(email, password);
-            if (user?.token && user?.userData?.verified === true) {
-                setCookie(res, 'userToken', user.token);
-                res.json({ user, message: "Login successful", status: true, statusCode: 200 });
+            if (user?.token ) {
+                if(user?.userData?.verified === true){
+                    setCookie(res, 'userToken', user.token);
+                    res.json({ user, message: "Login successful", status: true, statusCode: 200 });
+                }else res.json({ error: "User not verified", status: false, statusCode: 400 });
+                
             } else {
                 res.json({ error: "Invalid email or password", status: false, statusCode: 400 });
             }

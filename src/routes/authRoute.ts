@@ -31,8 +31,8 @@ authRoute.post('/user/resetPassword')
 
 
 authRoute.post('/instructor/signUp', instructorController.create.bind(instructorController))
-authRoute.post('/instructor/SignIn', instructorController.login.bind(instructorController))
-authRoute.post('/instructor/verifyOtp',)
+authRoute.post('/instructor/signIn', instructorController.login.bind(instructorController))
+authRoute.post('/instructor/verifyOtp',instructorController.verification.bind(instructorController))
 authRoute.post('/instructor/forgetPassword',)
 authRoute.post('/instructor/resetPassword',)
 

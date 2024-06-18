@@ -25,5 +25,7 @@ instructorRoute.get('/listInstructor', instructorController.listAll.bind(instruc
 instructorRoute.post('/addCourse', multerMid.fields([{ name: 'thumbnail', maxCount: 1, },{name:'video',maxCount:1}]), courseController.createCourse.bind(courseController))
 instructorRoute.post('/listCourses', courseController.listCourses.bind(courseController))
 instructorRoute.post('/:id/curriculum', multerMid.any(), courseController.addCurriculum.bind(courseController))
-
+instructorRoute.patch('/:id/changeStatus', courseController.blockCourse.bind(courseController))
+instructorRoute.put('/:id/editCourse', multerMid.fields([{ name: 'thumbnail', maxCount: 1, },{name:'video',maxCount:1}]), courseController.editCourse.bind(courseController))
+instructorRoute.put('/:id/updateCourse', multerMid.any(), courseController.updateCourse.bind(courseController))
 export default instructorRoute
