@@ -24,16 +24,16 @@ authRoute.post('/admin/login', adminController.adminLogin.bind(adminController))
 
 authRoute.post('/user/signUp', studentController.signUpUser.bind(studentController))
 authRoute.post('/user/signIn', studentController.signInUser.bind(studentController))
-authRoute.post('/user/verifyOtp/', studentController.verifyUser.bind(studentController))
-authRoute.post('/user/forgetPassword')
-authRoute.post('/user/resetPassword')
+authRoute.post('/user/verifyOtp', studentController.verifyUser.bind(studentController))
+authRoute.post('/user/forgetPassword',studentController.forgotPassword.bind(studentController))
+authRoute.post('/user/resetPassword',studentController.changePassword.bind(studentController))
 
 
 
 authRoute.post('/instructor/signUp', instructorController.create.bind(instructorController))
 authRoute.post('/instructor/signIn', instructorController.login.bind(instructorController))
 authRoute.post('/instructor/verifyOtp',instructorController.verification.bind(instructorController))
-authRoute.post('/instructor/forgetPassword',)
-authRoute.post('/instructor/resetPassword',)
+authRoute.post('/instructor/forgetPassword',instructorController.forgetPassword.bind(instructorController))
+authRoute.post('/instructor/resetPassword',instructorController.changePassword.bind(instructorController))
 
 export default authRoute

@@ -23,13 +23,23 @@ import LessonService from "../services/lessonService";
 import LessonRepo from "../repositories/lessonsRepository";
 import chapterService from "../services/chapterService";
 import ChapterRepo from "../repositories/chapterRepository";
+import EnrolledCourseService from "../services/enrolledCourseService";
+import EnrolledCourseRepo from "../repositories/enrolledCourseRepository";
 
 
 // let adminController=new AdminController(new AdminServices(new AdminRepository()));
 let studentController = new StudentController(new StudentServices(new StudentRepo(), new OtpRepo()));
 let catogariesController = new CatagoriesController(new CatogariesService(new CatogariesRepo()))
 let instructorController = new InstructorController(new InstructorService(new InstructorRepo(), new OtpRepo()))
-let courseController = new CourseController(new CourseServices(new CourseRepo()), new InstructorService(new InstructorRepo(), new OtpRepo()),new LessonService(new LessonRepo()),new chapterService(new ChapterRepo()),new CatogariesService(new CatogariesRepo()))
+let courseController = new CourseController(
+    new CourseServices(new CourseRepo()),
+    new InstructorService(new InstructorRepo(), new OtpRepo()),
+    new LessonService(new LessonRepo()),
+    new chapterService(new ChapterRepo()),
+    new CatogariesService(new CatogariesRepo()),
+    new EnrolledCourseService(new EnrolledCourseRepo()),
+    new StudentServices(new StudentRepo(), new OtpRepo())
+)
 let adminRoute: Router = express.Router();
 // adminRoute.use(authMiddlewareAdmin)
 adminRoute.get('/listUser', studentController.listStudents.bind(studentController))

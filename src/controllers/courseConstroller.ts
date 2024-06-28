@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { unlink } from 'fs'
-// import { ICourse } from "../interfaces/courseInterface";
 import CourseServices from "../services/courseService";
 import InstructorService from "../services/instructorService";
 import cloudinary from "../utils/coudinaryConfig";
@@ -8,7 +7,11 @@ import { ICourse, ICourseRes } from "../interfaces/courseInterface";
 import LessonService from "../services/lessonService";
 import chapterService from "../services/chapterService";
 import CatogariesService from "../services/catoogariesServices";
+import { buyCourse } from "../utils/stripe";
+import EnrolledCourseService from "../services/enrolledCourseService";
+import StudentServices from "../services/studentService";
 
+// import bycrypt from "bcrypt"
 
 class CourseController {
 
@@ -17,14 +20,18 @@ class CourseController {
     private lessonService: LessonService
     private chapterService: chapterService
     private categoryService: CatogariesService
+    private enrollCourseService: EnrolledCourseService
+    private studentService: StudentServices
 
 
-    constructor(courseService: CourseServices, instructorService: InstructorService, lessonService: LessonService, chapterService: chapterService, categoryService: CatogariesService) {
+    constructor(courseService: CourseServices, instructorService: InstructorService, lessonService: LessonService, chapterService: chapterService, categoryService: CatogariesService, enrollCourseService: EnrolledCourseService, studentService: StudentServices) {
         this.courseService = courseService
         this.instructorService = instructorService
         this.lessonService = lessonService
         this.chapterService = chapterService
         this.categoryService = categoryService
+        this.enrollCourseService = enrollCourseService
+        this.studentService = studentService
     }
 
     async createCourse(req: any, res: Response): Promise<ICourseRes | void> {
@@ -108,7 +115,7 @@ class CourseController {
             res.json({ error: 'Failed to update course', status: false, statusCode: 500 })
         }
     }
-    
+
 
     async listCourses(req: Request, res: Response): Promise<void> {
         try {
@@ -116,6 +123,33 @@ class CourseController {
             let instructor = await this.instructorService.findId(id)
 
             const courses: ICourse[] | null = await this.courseService.listCourses(instructor)
+            if (courses) res.json({ courses, message: 'Courses fetched successfully', status: true, statusCode: 200 })
+            else res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
+        } catch (error) {
+            console.error(error)
+            res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
+        }
+    }
+    async listBlockedCourses(req: Request, res: Response): Promise<void> {
+        try {
+            const id = req.params.email
+            let instructor = await this.instructorService.findId(id)
+
+            const courses: ICourse[] | null = await this.courseService.listBlockedCourses(instructor)
+            if (courses) res.json({ courses, message: 'Courses fetched successfully', status: true, statusCode: 200 })
+            else res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
+        } catch (error) {
+            console.error(error)
+            res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
+        }
+    }
+
+    async listVerifiedCourses(req: Request, res: Response): Promise<void> {
+        try {
+            const id = req.params.email
+            let instructor = await this.instructorService.findId(id)
+
+            const courses: ICourse[] | null = await this.courseService.listVerifiedCourses(instructor)
             if (courses) res.json({ courses, message: 'Courses fetched successfully', status: true, statusCode: 200 })
             else res.json({ error: 'Failed to fetch courses', status: false, statusCode: 500 })
         } catch (error) {
@@ -220,10 +254,10 @@ class CourseController {
         try {
             const { id } = req.params;
             const { sections } = req.body;
-    
+
             function findingFile(req: any, lesson: any): any {
                 let resultFile: any = '';
-    
+
                 req.files.forEach((file: any) => {
                     if (file.fieldname === lesson.fileName) {
                         resultFile = file;
@@ -231,10 +265,10 @@ class CourseController {
                 });
                 return resultFile;
             }
-    
+
             function findingVideo(req: any, lesson: any): any {
                 let resultFile: any = '';
-    
+
                 req.files.forEach((file: any) => {
                     if (file.fieldname === lesson.videoName) {
                         resultFile = file;
@@ -242,13 +276,13 @@ class CourseController {
                 });
                 return resultFile;
             }
-    
+
             // Process sections and their lectures
             const processedSections = await Promise.all(sections.map(async (section: any) => {
                 console.log('section', section);
                 const processedLectures = await Promise.all(section.lectures.map(async (lecture: any) => {
                     console.log('lecture', lecture);
-                    
+
                     let filesUrl = '';
                     let videoUrl = '';
                     if (findingFile(req, lecture)) {
@@ -278,7 +312,7 @@ class CourseController {
                             throw error;
                         });
                     }
-    
+
                     const updatedLesson: any = await this.lessonService.updateLesson(lecture.id, {
                         name: lecture.name,
                         description: lecture.description,
@@ -286,29 +320,29 @@ class CourseController {
                         files: filesUrl,
                         video: videoUrl,
                     });
-    
+
                     return updatedLesson._id;
                 }));
-                
-    
+
+
                 return await this.chapterService.updateChapter(section.id, {
                     name: section.name,
                     lessonsID: processedLectures,
                     courseID: id,
                     isFree: section.isFree == 'true' ? true : false,
-                    
+
                 });
             }));
-            
-    
-            let result = await this.courseService.updateChapter(id, processedSections.map(section => section._id));            
+
+
+            let result = await this.courseService.updateChapter(id, processedSections.map(section => section._id));
             res.json({ result, message: 'Course Curriculum updated successfully', status: true, statusCode: 200 });
         } catch (error) {
             console.error('Error updating course:', error);
             res.json({ error: 'Failed to update course', status: false, statusCode: 500 });
         }
     }
-    
+
 
 
     async listAllCourses(_req: Request, res: Response): Promise<void> {
@@ -318,6 +352,31 @@ class CourseController {
         } catch (error) {
             console.error('Error listing courses:', error);
             res.json({ error: 'Failed to list courses', status: false, statusCode: 500 });
+        }
+    }
+    async list(req: Request, res: Response): Promise<void> {
+        try {
+            let { category, sort, page, limit, search }: any = req.query;
+
+            let sortValue: 1 | -1 = 1; // Default value
+            if (typeof sort === 'string') {
+                const parsedSort = parseInt(sort, 10);
+                if (parsedSort === 1 || parsedSort === -1) {
+                    sortValue = parsedSort;
+                }
+            }
+
+            // Convert `page` and `limit` to numbers with default values
+            const pageValue = page ? parseInt(page as string, 10) : 1;
+            const limitValue = limit ? parseInt(limit as string, 10) : 10;
+
+            const searchValue = typeof search === 'string' ? search : null;
+            const courses = await this.courseService.course(category, sortValue, pageValue, limitValue, searchValue == '' ? null : searchValue);
+
+            res.json({ courses: courses.results, total: courses.total, message: 'Courses fetched successfully', status: true, statusCode: 200 });
+        } catch (error) {
+            console.error('Error listing courses:', error);
+            res.status(500).json({ error: 'Failed to list courses', status: false, statusCode: 500 });
         }
     }
     async verifyCourse(req: Request, res: Response): Promise<void> {
@@ -334,10 +393,8 @@ class CourseController {
     async blockCourse(req: Request, res: Response): Promise<void> {
         try {
             const { id } = req.params;
-            
-            const {status} = req.body;
-            console.log("req.body,",status);
-            
+
+            const { status } = req.body;
             const result = await this.courseService.blockCourse(id, !status);
             res.json({ result, message: 'Course deleted successfully', status: true, statusCode: 200 });
         } catch (error) {
@@ -345,6 +402,63 @@ class CourseController {
             res.json({ error: 'Failed to delete course', status: false, statusCode: 500 });
         }
     }
+
+    async enrollCourseCheckout(req: Request, res: Response): Promise<void> {
+        try {
+            const { price, courseId, image } = req.body.data
+            let hash = await this.courseService.hashCourse(courseId)
+
+            const session = await buyCourse(image, price, hash, courseId)
+
+            res.json({ session, message: "Course enrolled successfully" })
+        } catch (error) {
+
+        }
+    }
+    async enroll(req: Request, res: Response): Promise<void> {
+        try {
+
+            const { courseId, hash, email } = req.body.data
+            let resqq = await this.courseService.enrollCourse(courseId, hash,)
+            let studentId = await this.studentService.findUserByEmail(email)
+            await this.enrollCourseService.enroll(studentId?._id, courseId)
+            res.json({ resqq, message: "Course enrolled successfully", status: true, statusCode: 200 })
+        } catch (error) {
+            console.error('Error enrolling course:', error);
+            res.json({ error: 'Failed to enroll course', status: false, statusCode: 500 });
+        }
+    }
+    async myCourse(req: Request, res: Response): Promise<void> {
+        try {
+
+            const { id } = req.params
+            let student = await this.studentService.findUserByEmail(id)
+            let courses = await this.enrollCourseService.getEnrolledCourse(student?._id)
+            let myCourse: any = []
+            courses.forEach((element) => {
+
+                myCourse.push(element.courseId)
+            })
+
+            res.json({ courses, myCourse, message: "Course fetched successfully", status: true, statusCode: 200 })
+        } catch (error) {
+            console.error('Error enrolling course:', error);
+            res.json({ error: 'Failed to enroll course', status: false, statusCode: 500 });
+        }
+    }
+
+    async viewCourse(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params
+            let course = await this.courseService.viewCourse(id)
+            res.json({ course, message: "Course fetched successfully", status: true, statusCode: 200 })
+        } catch (error) {
+            console.error('Error enrolling course:', error);
+            res.json({ error: 'Failed to enroll course', status: false, statusCode: 500 });
+        }
+    }
+
+
 
 
 }

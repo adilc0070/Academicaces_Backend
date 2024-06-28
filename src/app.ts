@@ -7,6 +7,7 @@ import cors from 'cors'
 import bodyParser from "body-parser";
 import adminRoute from "./routes/adminRoutes";
 import instructorRoute from "./routes/instructorRoutes";
+import studentRoute from "./routes/studentRoutes";
 
 
 const app = express();
@@ -26,6 +27,7 @@ connectDB()
 app.use('/auth', authRoute)
 app.use('/admin', adminRoute)
 app.use('/instructor', instructorRoute)
+app.use('/student', studentRoute)
 app.use('*', (_, res) => {
     res.json({ message: "Hello Worlds" });
 })

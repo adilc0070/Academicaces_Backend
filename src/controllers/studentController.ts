@@ -88,8 +88,26 @@ class StudentController {
             
         }
     }
+    async forgotPassword(req: Request, res: Response): Promise<void> {
+        try {
+            const { email } = req.body
+            await this.studentService.forgotPassword(email)
+            res.json()
+        } catch (error) {
+            
+        }
+    }
+    async changePassword(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, password } = req.body
+            await this.studentService.changePassword(email, password)
+            res.json()
+        } catch (error) {
+            
+        }
+    }
     
-
+    
 }
 
 export default StudentController

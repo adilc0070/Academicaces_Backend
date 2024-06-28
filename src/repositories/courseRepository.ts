@@ -1,6 +1,7 @@
 import cousre from "../models/cousre";
 import { ICourse } from "../interfaces/courseInterface";
-import { ObjectId } from "mongoose";
+import { ObjectId as objid } from "mongoose";
+import { ObjectId } from "mongodb";
 
 
 class CourseRepo {
@@ -12,9 +13,24 @@ class CourseRepo {
         return newCourse.save();
     }
     async getCourse(id: string) {
-        return await cousre.aggregate([{ $match: { _id: id } }]);
+        let course = await cousre.findOne({ _id: id })
+            .populate('category', )
+            .populate('instructor',)
+            .populate({ path: 'chapters', populate: { path: 'lessonsID' } })
+            .exec();
+
+        if (!course) {
+            throw new Error('Course not found');
+        }
+
+        let courseObj = course.toObject();
+
+
+        return courseObj;
     }
-    async listCourse(id: ObjectId | null): Promise<ICourse[]> {
+
+
+    async listCourse(id: objid | null): Promise<ICourse[]> {
         let results = await cousre.aggregate([{ $match: { instructor: id } }]).exec();
 
         results = await cousre.populate(results, [
@@ -24,6 +40,12 @@ class CourseRepo {
         ]);
 
         return results;
+    }
+    async listBlockedCourses(instructor: objid | null): Promise<ICourse[]> {
+        return await cousre.find({ instructor: instructor, isBlock: true }).populate("category", 'name').populate("instructor", 'name').populate({ path: "chapters", populate: { path: "lessonsID" } })
+    }
+    async listVerifiedCourses(instructor: objid | null): Promise<ICourse[]> {
+        return await cousre.find({ instructor: instructor, verified: true }).populate("category", 'name').populate("instructor", 'name').populate({ path: "chapters", populate: { path: "lessonsID" } })
     }
     async addChapter(id: string, data: any) {
         return await cousre.findByIdAndUpdate(id, { $push: { chapters: data } }, { new: true })
@@ -39,15 +61,41 @@ class CourseRepo {
     }
     async listAll() {
         return await cousre.find({}).populate("category", 'name').populate("instructor", 'name').populate({ path: "chapters", populate: { path: "lessonsID" } })
-        
+
     }
     async verifieCourse(id: string, status: boolean) {
         return await cousre.findByIdAndUpdate(id, { verified: status }, { new: true }).populate("category", 'name').populate("instructor", 'name').populate({ path: "chapters", populate: { path: "lessonsID" } })
     }
-    async blockCourse(id: string,status:boolean) {
+    async blockCourse(id: string, status: boolean) {
         return await cousre.findByIdAndUpdate(id, { isBlock: status }, { new: true }).populate("category", 'name').populate("instructor", 'name').populate({ path: "chapters", populate: { path: "lessonsID" } })
-    } 
+    }
+    async course(category: string, sort: 1 | -1, page: number, limit: number, search: string | null) {
+        let query = {};
+        // Construct the query based on the category and search parameters
+        if (category && search) {
+            query = { 'category': new ObjectId(category), title: { $regex: search, $options: "i" }, verified: true };
+        } else if (category && search === null) {
+            query = { 'category': new ObjectId(category), verified: true };
+        } else if (!category && search !== null) {
+            query = { title: { $regex: search, $options: "i" }, verified: true };
+        } else {
+            query = { verified: true };
+        }
+
+        const results = await cousre.find(query)
+            .sort({ price: sort })
+            .skip((page - 1) * limit)
+            .limit(limit).populate("category", 'name').populate("instructor", 'name').populate({ path: "chapters", populate: { path: "lessonsID" } }).exec();
+        const total = await cousre.countDocuments(query)
+        return { results, total }
+
+    }
+    async countDoc() {
+        return await cousre.countDocuments()
+    }
+
 }
+
 
 
 export default CourseRepo

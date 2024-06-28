@@ -6,6 +6,7 @@ import { IInstructor } from "../interfaces/instructorInterrface"
 import { sendVerifyMail } from "../utils/otpVerification"
 import { Res } from "../interfaces/commonn"
 import { ObjectId } from "mongoose"
+import { IOtp } from "../interfaces/otpInterface"
 
 class InstructorService {
     private instructorRepo: InstructorRepo
@@ -27,10 +28,9 @@ class InstructorService {
     }
     async insertInstructor(name: string, email: string, password: string, bio: string, verified: boolean = false): Promise<IInstructor> {
         try {
-            console.log("inserting instructor", name, email, password, bio);
+
             if (!name || !email || !password || !bio) throw new Error("Missing required fields")
             let existOrNote: boolean = await this.emailEixist(email)
-            console.log("existOrNote", existOrNote);
             if (existOrNote) throw new Error("Email already in use")
             let otp: string = await sendVerifyMail(name, email)
             let otpData = await this.otpRepo.createOtp(email, otp)
@@ -82,6 +82,39 @@ class InstructorService {
                 await this.otpRepo.deleteOtp(email)
             }
             return await this.instructorRepo.findInstructorByEmail(email)
+        } catch (error) {
+            throw error
+        }
+    }
+    async forgetPassword(email: string): Promise<any> {
+        try {
+            let result = await this.emailEixist(email)
+            console.log(result)
+            if (!result) return false
+            let otp = await sendVerifyMail('User', email)
+            let otpData = await this.otpRepo.createOtp(email, otp)
+            otpData
+            return true
+        } catch (error) {
+            throw error
+        }
+    }
+    async resetPassword(email: string, otp: string, password: string): Promise<any> {
+        try {
+            let userexist: IInstructor | null = await this.instructorRepo.findInstructorByEmail(email)
+            if (!userexist) throw new Error("User not found")
+            let otpData: IOtp | null = await this.otpRepo.findOtpByEmail(email)
+            if (!otpData) return false
+            if (otpData.otp !== otp) return { status: false, message: "Invalid otp" }
+            else {
+                let hashPassword: string = await bycrypt.hash(password, 10)
+                let result = await this.instructorRepo.changePassword(email, hashPassword)
+                if (result) {
+                    await this.otpRepo.deleteOtp(email)
+                    return this.instructorRepo.findInstructorByEmail(email)
+                }
+            }
+
         } catch (error) {
             throw error
         }

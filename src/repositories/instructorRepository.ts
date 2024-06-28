@@ -62,6 +62,14 @@ class InstructorRepo {
             throw error
         }
     }
+    async changePassword(email: string, password: string): Promise<IInstructor | null> {
+        try {
+            const instructor: IInstructor | null = await Instructor.findOneAndUpdate({ email: email }, { password: password }).exec()
+            return instructor
+        } catch (error) {
+            throw error
+        }
+    }
 
 }
 

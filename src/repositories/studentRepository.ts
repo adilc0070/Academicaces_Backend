@@ -67,6 +67,13 @@ class StudentRepo {
             throw error
         }
     }
+    async updatePassword(_id: string, password: string): Promise<IStudent | null> {
+        try {
+            return await student.findByIdAndUpdate(_id, { password }, { new: true })
+        } catch (error) {
+            throw error
+        }
+    }
 
 }
 

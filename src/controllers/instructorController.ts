@@ -68,6 +68,29 @@ class InstructorController {
             res.json({error:'verification is failed',status:false,statusCode:500})
         }
     }
+    async forgetPassword(req:Request,res:Response):Promise<void>{
+        try{
+            const {email}=req.body
+            let result=await this.instructorService.forgetPassword(email)
+            if(result) res.json({result:result,message:'forget password is success',status:true,statusCode:200})
+            else res.json({result:result,error:'email not found',status:false,statusCode:500})
+        }catch(error){
+        }
+    }
+    async changePassword(req:Request,res:Response):Promise<void>{
+        try{
+            console.log('req.body',req.body);
+            const {email,otp,newPassword}=req.body
+            let result=await this.instructorService.resetPassword(email,otp,newPassword)
+            console.log('result',result);
+            
+            if(result) res.json({result:result,message:'change password is success',status:true,statusCode:200})
+            else res.json({result:result,error:'change password is failed',status:false,statusCode:500})
+
+        }catch(error){
+        }
+    }
+    
 }
 
 export default InstructorController

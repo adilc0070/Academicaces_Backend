@@ -91,7 +91,7 @@ class StudentServices {
     }
     async listUsers(page: number, limit: number): Promise<Res> {
         try {
-            
+
             const students: IStudent[] | null = await this.studentRep.findUsers(page, limit);
             if (students) {
                 const total = await this.studentRep.countUsers(); // Get the total count of students
@@ -107,9 +107,49 @@ class StudentServices {
 
 
 
-    async findAndBlockUnblockUser(id: string, status: boolean): Promise<IStudent| null> {
+    async findAndBlockUnblockUser(id: string, status: boolean): Promise<IStudent | null> {
         try {
             return await this.studentRep.blockStatus(id, status)
+        } catch (error) {
+            throw error
+        }
+    }
+    async forgotPassword(email: string): Promise<IStudentRes | null> {
+        try {
+            let userexist: IStudent | null = await this.studentRep.findUserByEmail(email)
+            if (!userexist) throw new Error("User not found")
+            let otp: string = await sendVerifyMail(userexist.userName, userexist.email)
+            await this.otpRepo.createOtp(email, otp)
+            return { status: true, message: "Otp sent successfully" }
+
+        } catch (error) {
+            console.error("Error in forgotPassword:", error);
+            throw error
+        }
+    }
+    async changePassword(email: string, password: string): Promise<IStudentRes | null> {
+        try {
+            let userexist: IStudent | null = await this.studentRep.findUserByEmail(email)
+            if (!userexist) throw new Error("User not found")
+            let hashPassword: string = await bycrypt.hash(password, 10)
+            await this.studentRep.updatePassword(email, hashPassword)
+            return { status: true, message: "Password changed successfully" }
+
+        } catch (error) {
+            console.error("Error in changePassword:", error);
+            throw error
+        }
+    }
+    async findUserById(id: string): Promise<IStudent | null> {
+        try {
+            return await this.studentRep.findById(id)
+        } catch (error) {
+            throw error
+        }
+    }
+    async findUserByEmail(email: string): Promise<IStudent | null> {
+        try {
+            return await this.studentRep.findUserByEmail(email)
         } catch (error) {
             throw error
         }
