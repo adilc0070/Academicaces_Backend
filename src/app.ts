@@ -1,7 +1,10 @@
 import express, { } from "express";
 import dotenv from 'dotenv'
-import connectDB from '../migrations/index'
+import http from 'http'
+import connectDB from "../migrations";
 import authRoute from "./routes/authRoute";
+import { initializeSocket } from "./utils/socketIO";
+
 dotenv.config()
 import cors from 'cors'
 import bodyParser from "body-parser";
@@ -15,12 +18,17 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const server = http.createServer(app)
 app.use(cors({
     origin: [`${process.env.ORIGIN_URL}`],
-    methods: ["GET", "POST", "DELETE","PATCH","PUT"],
+    methods: ["GET", "POST", "DELETE", "PATCH", "PUT"],
     credentials: true,
 }))
 
+
+
+
+initializeSocket(server)
 
 connectDB()
 
@@ -34,9 +42,9 @@ app.use('*', (_, res) => {
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error(err.stack);
     res.status(500).send('Something went wrong!');
-  });
+});
 // Start the server
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
     console.log("Server is running on port 3000 \n\nhttp://localhost:3000");
 });
 

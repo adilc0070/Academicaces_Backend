@@ -1,3 +1,4 @@
+import cousre from "../models/cousre";
 import EnrolledCourseRepo from "../repositories/enrolledCourseRepository";
 class EnrolledCourseService {
     private enrolledCourseRepo: EnrolledCourseRepo
@@ -6,15 +7,24 @@ class EnrolledCourseService {
         this.enrolledCourseRepo = enrolledCourseRepo
     }
 
-    async enroll(studentId: string|null, courseId: string) {
+    async enroll(studentId: string | null, courseId: string) {
+        const courseExist = await this.enrolledCourseRepo.checkEnrolledCourse(studentId, courseId)
+        if (courseExist) return false
+        await cousre.updateOne({ _id: courseId }, { $push: { enrolledStudents: studentId } })
+        const instructorId:any = await cousre.findOne({ _id: courseId }).populate('instructor').exec()
+        await this.enrolledCourseRepo.createChat(studentId, instructorId?.instructor?._id)
         return await this.enrolledCourseRepo.enroll(studentId, courseId)
     }
 
     async getEnrolledCourse(id: string) {
         return await this.enrolledCourseRepo.getEnrolledCourse(id)
     }
-    
-    
-} 
+
+    async checkEnrolledCourse(studentId: string|null, courseId: string) {
+        return await this.enrolledCourseRepo.checkEnrolledCourse(studentId, courseId)
+    }
+
+
+}
 
 export default EnrolledCourseService

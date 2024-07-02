@@ -10,6 +10,7 @@ import CatogariesService from "../services/catoogariesServices";
 import { buyCourse } from "../utils/stripe";
 import EnrolledCourseService from "../services/enrolledCourseService";
 import StudentServices from "../services/studentService";
+import student from "../models/student";
 
 // import bycrypt from "bcrypt"
 
@@ -218,6 +219,8 @@ class CourseController {
                             throw error
                         })
                     }
+                    
+                    
                     const newLesson = await this.lessonService.createLesson({
                         name: lecture.name,
                         description: lecture.description,
@@ -237,7 +240,7 @@ class CourseController {
                         name: section.name,
                         lessonsID: processedLectures,
                         courseID: id,
-                        isFree: section.isFree ? true : false
+                        isFree: section.isFree===true ? true : false
                     });
             }));
 
@@ -369,6 +372,7 @@ class CourseController {
             // Convert `page` and `limit` to numbers with default values
             const pageValue = page ? parseInt(page as string, 10) : 1;
             const limitValue = limit ? parseInt(limit as string, 10) : 10;
+            console.log('pageValue', pageValue, 'limitValue', limitValue);
 
             const searchValue = typeof search === 'string' ? search : null;
             const courses = await this.courseService.course(category, sortValue, pageValue, limitValue, searchValue == '' ? null : searchValue);
@@ -405,9 +409,11 @@ class CourseController {
 
     async enrollCourseCheckout(req: Request, res: Response): Promise<void> {
         try {
-            const { price, courseId, image } = req.body.data
-            let hash = await this.courseService.hashCourse(courseId)
-
+            const { price, courseId, image,studentEmail } = req.body.data
+            const studentId:any=await student.findOne({email:studentEmail})
+            const isExist=await this.enrollCourseService.checkEnrolledCourse(studentId?._id,courseId)
+            if(isExist) throw new Error('Course already enrolled')
+            const hash = await this.courseService.hashCourse(courseId)
             const session = await buyCourse(image, price, hash, courseId)
 
             res.json({ session, message: "Course enrolled successfully" })
@@ -420,7 +426,7 @@ class CourseController {
 
             const { courseId, hash, email } = req.body.data
             let resqq = await this.courseService.enrollCourse(courseId, hash,)
-            let studentId = await this.studentService.findUserByEmail(email)
+            let studentId: any = await this.studentService.findUserByEmail(email)
             await this.enrollCourseService.enroll(studentId?._id, courseId)
             res.json({ resqq, message: "Course enrolled successfully", status: true, statusCode: 200 })
         } catch (error) {
@@ -432,7 +438,7 @@ class CourseController {
         try {
 
             const { id } = req.params
-            let student = await this.studentService.findUserByEmail(id)
+            let student:any = await this.studentService.findUserByEmail(id)
             let courses = await this.enrollCourseService.getEnrolledCourse(student?._id)
             let myCourse: any = []
             courses.forEach((element) => {

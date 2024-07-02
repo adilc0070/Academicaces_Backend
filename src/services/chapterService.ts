@@ -8,7 +8,6 @@ class chapterService{
     }
 
     async createChapter({ name, order, lessonsID, courseID,isFree }: any) {
-        console.log("createChapter service", name, order, lessonsID, courseID,isFree);
         return await this.chapterRepo.createChapter({ name, order, lessonsID, courseID,isFree })
     }
     async getChapter(id: string) {

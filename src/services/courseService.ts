@@ -9,7 +9,7 @@ class CourseServices {
     constructor(courseRepo: CourseRepo) {
         this.courseRepo = courseRepo
     }
-    async createCourse({ title, subtitle, thumbnail, instructor, category, topic, triler, price }: ICourse) {
+    async createCourse({ title, subtitle, thumbnail, instructor, category, topic, triler, price }: any) {
         return await this.courseRepo.createCourse({ title, subtitle, thumbnail, instructor, category, topic, triler, price })
     }
     async editCourse(id: string, data: any) {
@@ -52,9 +52,9 @@ class CourseServices {
         return await bycrypt.hash(id, 10)
     }
     async enrollCourse(id: string, hash: string){
-        let a=await bycrypt.compare(id,hash)
+        const a=await bycrypt.compare(id,hash)
         if(!a) throw new Error('Invalid hash')
-        let course=await this.courseRepo.getCourse(id)
+        const course=await this.courseRepo.getCourse(id)
         return course
         // return await this.courseRepo.enrollCourse(id, hash)
     }

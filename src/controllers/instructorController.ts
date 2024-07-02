@@ -45,6 +45,21 @@ class InstructorController {
             res.json({ error: "Failed to login", status: false, statusCode: 500 })
         }
     }
+    async getId(req: Request, res: Response): Promise<void> {
+        try {
+            const email = req.query.email as string
+            const user = await this.instructorService.findId(email)
+            if (user) {
+                res.json(user)
+            }
+            else {
+                res.status(404).json({ error: "User not found", status: false, statusCode: 404 })
+            }
+        } catch (error) {
+            console.error("Error in getId:", error);
+            res.status(500).json({ error: "Failed to get user", status: false, statusCode: 500 })
+        }
+    }
     async listAll(_req:Request,res:Response):Promise<void>{
         try{
             let Instructors:IInstructorRes|null= await this.instructorService.instructorList()
@@ -79,10 +94,8 @@ class InstructorController {
     }
     async changePassword(req:Request,res:Response):Promise<void>{
         try{
-            console.log('req.body',req.body);
             const {email,otp,newPassword}=req.body
             let result=await this.instructorService.resetPassword(email,otp,newPassword)
-            console.log('result',result);
             
             if(result) res.json({result:result,message:'change password is success',status:true,statusCode:200})
             else res.json({result:result,error:'change password is failed',status:false,statusCode:500})

@@ -18,3 +18,9 @@ export interface IStudentRes {
 }
 
 
+export interface IStudentReq {
+    userName: string;
+    email: string;
+    password: string;
+    bio: string;
+}

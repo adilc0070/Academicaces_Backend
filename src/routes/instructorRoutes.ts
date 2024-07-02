@@ -17,11 +17,12 @@ import EnrolledCourseService from "../services/enrolledCourseService";
 import EnrolledCourseRepo from "../repositories/enrolledCourseRepository";
 import StudentServices from "../services/studentService";
 import StudentRepo from "../repositories/studentRepository";
+import ChatRepo from "../repositories/chatRepository";
+import ChatService from "../services/chatService";
+import ChatController from "../controllers/chatController";
 
-
-
-let instructorController = new InstructorController(new InstructorServices(new InstructorRepo(), new OtpRepo()))
-let courseController = new CourseController(
+const instructorController = new InstructorController(new InstructorServices(new InstructorRepo(), new OtpRepo()))
+const courseController = new CourseController(
     new CourseServices(new CourseRepo()),
     new InstructorServices(new InstructorRepo(), new OtpRepo()),
     new LessonService(new LessonRepo()),
@@ -30,8 +31,10 @@ let courseController = new CourseController(
     new EnrolledCourseService(new EnrolledCourseRepo()),
     new StudentServices(new StudentRepo(), new OtpRepo())
 )
+const chatController = new ChatController(new ChatService(new ChatRepo()))
 
-let instructorRoute: Router = express.Router();
+const instructorRoute: Router = express.Router();
+instructorRoute.get('/getId', instructorController.getId.bind(instructorController))
 instructorRoute.get('/listInstructor', instructorController.listAll.bind(instructorController))
 instructorRoute.post('/addCourse', multerMid.fields([{ name: 'thumbnail', maxCount: 1, }, { name: 'video', maxCount: 1 }]), courseController.createCourse.bind(courseController))
 instructorRoute.post('/listCourses', courseController.listCourses.bind(courseController))
@@ -41,4 +44,9 @@ instructorRoute.post('/:id/curriculum', multerMid.any(), courseController.addCur
 instructorRoute.patch('/:id/changeStatus', courseController.blockCourse.bind(courseController))
 instructorRoute.put('/:id/editCourse', multerMid.fields([{ name: 'thumbnail', maxCount: 1, }, { name: 'video', maxCount: 1 }]), courseController.editCourse.bind(courseController))
 instructorRoute.put('/:id/updateCourse', multerMid.any(), courseController.updateCourse.bind(courseController))
+
+instructorRoute.get('/:id/listChats', chatController.listInstructorChats.bind(chatController))
+instructorRoute.post('/:id/sendChat', chatController.createMessage.bind(chatController))
+instructorRoute.get('/:id/listMessages', chatController.getMessages.bind(chatController))
+
 export default instructorRoute
