@@ -34,6 +34,7 @@ const courseController = new CourseController(
 const chatController = new ChatController(new ChatService(new ChatRepo()))
 
 const instructorRoute: Router = express.Router();
+instructorRoute.get('/:id/details', instructorController.getDetails.bind(instructorController))
 instructorRoute.get('/getId', instructorController.getId.bind(instructorController))
 instructorRoute.get('/listInstructor', instructorController.listAll.bind(instructorController))
 instructorRoute.post('/addCourse', multerMid.fields([{ name: 'thumbnail', maxCount: 1, }, { name: 'video', maxCount: 1 }]), courseController.createCourse.bind(courseController))

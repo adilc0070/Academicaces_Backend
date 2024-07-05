@@ -32,9 +32,7 @@ class AdminController {
         try {
             let adminEmail: string = "admin@gmail.com", password: string = '0070'
             let hashPassword: string = await bycrypt.hash(password, 10)
-            let data: IAdmin | null = await new Admin({ email: adminEmail, password: hashPassword }).save()
-            if (data) console.log('demo admin created form controller', data);
-
+            await new Admin({ email: adminEmail, password: hashPassword }).save()
         } catch (error) {
             console.error("Error in createADemoAdmin:", error);
         }

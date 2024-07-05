@@ -6,6 +6,7 @@ import { IInstructor } from "../interfaces/instructorInterrface"
 import { sendVerifyMail } from "../utils/otpVerification"
 import { Res } from "../interfaces/commonn"
 import { IOtp } from "../interfaces/otpInterface"
+import cousre from "../models/cousre"
 
 class InstructorService {
     private instructorRepo: InstructorRepo
@@ -71,6 +72,29 @@ class InstructorService {
             throw error
         }
     }
+    async findByEmail(email: string): Promise<IInstructor | null> {
+        try {
+            const data: IInstructor | null = await this.instructorRepo.findInstructorByEmail(email)
+            return data
+        } catch (error) {
+            throw error
+        }
+    }
+    async listCourses(id: string | null): Promise<any> {
+        try {
+            let results = await cousre.aggregate([{ $match: { instructor: id } }]).exec();
+
+            results = await cousre.populate(results, [
+                { path: 'category', select: 'name' },
+                { path: 'instructor', select: 'name' },
+                { path: 'chapters', populate: { path: 'lessonsID' } }
+            ]);
+
+            return results;
+        } catch (error) {
+            throw error
+        }
+    }
     async verification(email: string, otp: string): Promise<any> {
         try {
             let otpData = await this.otpRepo.findOtpByEmail(email)
@@ -113,7 +137,6 @@ class InstructorService {
                     return this.instructorRepo.findInstructorByEmail(email)
                 }
             }
-
         } catch (error) {
             throw error
         }

@@ -79,7 +79,6 @@ class CourseController {
 
             let thumbnailurl: any = '', videourl: any = ''
             if (req.files.thumbnail) {
-                console.log("thumbnail", req.files.thumbnail);
                 thumbnailurl = await cloudinary.uploader.upload(req.files?.thumbnail[0].path, {
                     folder: 'Academicaces',
                     resource_type: 'image'
@@ -98,8 +97,6 @@ class CourseController {
                     folder: 'Academicaces',
                     resource_type: 'video'
                 })
-                console.log("videourl", videourl.url);
-
                 unlink(req.files?.video[0].path, (err) => {
                     if (err) throw err
                 })
@@ -219,8 +216,8 @@ class CourseController {
                             throw error
                         })
                     }
-                    
-                    
+
+
                     const newLesson = await this.lessonService.createLesson({
                         name: lecture.name,
                         description: lecture.description,
@@ -240,7 +237,7 @@ class CourseController {
                         name: section.name,
                         lessonsID: processedLectures,
                         courseID: id,
-                        isFree: section.isFree===true ? true : false
+                        isFree: section.isFree === true ? true : false
                     });
             }));
 
@@ -282,9 +279,7 @@ class CourseController {
 
             // Process sections and their lectures
             const processedSections = await Promise.all(sections.map(async (section: any) => {
-                console.log('section', section);
                 const processedLectures = await Promise.all(section.lectures.map(async (lecture: any) => {
-                    console.log('lecture', lecture);
 
                     let filesUrl = '';
                     let videoUrl = '';
@@ -372,7 +367,6 @@ class CourseController {
             // Convert `page` and `limit` to numbers with default values
             const pageValue = page ? parseInt(page as string, 10) : 1;
             const limitValue = limit ? parseInt(limit as string, 10) : 10;
-            console.log('pageValue', pageValue, 'limitValue', limitValue);
 
             const searchValue = typeof search === 'string' ? search : null;
             const courses = await this.courseService.course(category, sortValue, pageValue, limitValue, searchValue == '' ? null : searchValue);
@@ -409,10 +403,10 @@ class CourseController {
 
     async enrollCourseCheckout(req: Request, res: Response): Promise<void> {
         try {
-            const { price, courseId, image,studentEmail } = req.body.data
-            const studentId:any=await student.findOne({email:studentEmail})
-            const isExist=await this.enrollCourseService.checkEnrolledCourse(studentId?._id,courseId)
-            if(isExist) throw new Error('Course already enrolled')
+            const { price, courseId, image, studentEmail } = req.body.data
+            const studentId: any = await student.findOne({ email: studentEmail })
+            const isExist = await this.enrollCourseService.checkEnrolledCourse(studentId?._id, courseId)
+            if (isExist) throw new Error('Course already enrolled')
             const hash = await this.courseService.hashCourse(courseId)
             const session = await buyCourse(image, price, hash, courseId)
 
@@ -438,7 +432,7 @@ class CourseController {
         try {
 
             const { id } = req.params
-            let student:any = await this.studentService.findUserByEmail(id)
+            let student: any = await this.studentService.findUserByEmail(id)
             let courses = await this.enrollCourseService.getEnrolledCourse(student?._id)
             let myCourse: any = []
             courses.forEach((element) => {
@@ -463,9 +457,31 @@ class CourseController {
             res.json({ error: 'Failed to enroll course', status: false, statusCode: 500 });
         }
     }
+    async isEnrolled(req: Request, res: Response): Promise<void> {
+        try {
+            const { id, courseId } = req.params;
+            const student: any = await this.studentService.findUserByEmail(id);
 
+            if (!student) {
+                res.status(404).json({ error: 'Student not found', status: false });
+                return;
+            }
 
+            const courses = await this.enrollCourseService.getEnrolledCourse(student?._id);
 
+            let isEnrolled = false;
+            for (const element of courses) {
+                if (element.courseId._id.toString() === courseId) {
+                    isEnrolled = true;
+                    break;
+                }
+            }
+            res.json(isEnrolled);
+        } catch (error) {
+            console.error('Error enrolling course:', error);
+            res.status(500).json({ error: 'Failed to check enrollment', status: false });
+        }
+    }
 
 }
 

@@ -16,7 +16,7 @@ class EnrolledCourseService {
         return await this.enrolledCourseRepo.enroll(studentId, courseId)
     }
 
-    async getEnrolledCourse(id: string) {
+    async getEnrolledCourse(id: string|null) {
         return await this.enrolledCourseRepo.getEnrolledCourse(id)
     }
 

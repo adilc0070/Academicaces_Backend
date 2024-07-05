@@ -45,6 +45,7 @@ studentRoute.post('/enrollCourse', courseController.enrollCourseCheckout.bind(co
 studentRoute.post('/enroll', courseController.enroll.bind(courseController))
 studentRoute.get('/myCourses/:id', courseController.myCourse.bind(courseController))
 studentRoute.get('/:id/viewCourse', courseController.viewCourse.bind(courseController))
+studentRoute.get('/:id/course/:courseId/isEnrolled', courseController.isEnrolled.bind(courseController))
 studentRoute.get('/:id/getChat', chatController.getChat.bind(chatController))
 studentRoute.get('/:id/listChats', chatController.listStudentChats.bind(chatController))
 studentRoute.post('/:id/sendChat', chatController.createMessage.bind(chatController))

@@ -11,6 +11,7 @@ import bodyParser from "body-parser";
 import adminRoute from "./routes/adminRoutes";
 import instructorRoute from "./routes/instructorRoutes";
 import studentRoute from "./routes/studentRoutes";
+import messageModel from "./models/messages";
 
 
 const app = express();
@@ -36,6 +37,28 @@ app.use('/auth', authRoute)
 app.use('/admin', adminRoute)
 app.use('/instructor', instructorRoute)
 app.use('/student', studentRoute)
+app.get('/api/messages', async (req, res) => {
+    const { sender, receiver } = req.query;
+
+    try {
+        const messages = await messageModel.find({
+            $or: [
+                { from: sender, to: receiver },
+                { from: receiver, to: sender }
+            ]
+        }).sort({ createdAt: 1 });
+
+        const formattedMessages = messages.map(message => ({
+            ...message.toObject(),
+            isSender: message.from === sender
+        }));
+
+        res.json(formattedMessages);
+    } catch (error) {
+        res.status(500).send("Error fetching messages");
+    }
+});
+
 app.use('*', (_, res) => {
     res.json({ message: "Hello Worlds" });
 })
