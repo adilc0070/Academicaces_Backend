@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { IStudent, IStudentRes } from "../interfaces/studentInterface";
 import studentService from "../services/studentService"
-import { setCookie } from "../utils/coockie";
+import { deleteCookie, setCookie } from "../utils/coockie";
 
 
 
@@ -17,7 +17,7 @@ class StudentController {
             console.log('email', email, 'password', password);
 
             const user = await this.studentService.createUser(userName, email, password, bio)
-            if (user) {
+            if (user ) {
                 res.json({ user, message: "User created successfully", status: true, statusCode: 201 })
             } else {
                 res.json({ error: "Failed to create user", status: false, statusCode: 500 })
@@ -25,6 +25,15 @@ class StudentController {
         } catch (error) {
             console.error("Error in signUpUser:", error);
             res.json({ error: "Failed to create user" })
+        }
+    }
+    async logout(_req: Request, res: Response): Promise<void> {
+        try {
+            deleteCookie(res, 'userToken');
+            res.json({ message: "Logout successful", status: true, statusCode: 200 });
+        } catch (error) {
+            console.error("Error in logout:", error);
+            res.json({ error: "Failed to logout", status: false, statusCode: 500 });
         }
     }
     async signInUser(req: Request, res: Response): Promise<void> {
@@ -35,7 +44,7 @@ class StudentController {
             if (user?.token) {
                 if (user?.userData?.verified === true) {
                     setCookie(res, 'userToken', user.token);
-                    res.json({ user, message: "Login successful", status: true, statusCode: 200 });
+                    res.json({ user, message: "Login successful", status: true, statusCode: 200, });
                 } else res.json({ error: "User not verified", status: false, statusCode: 400 });
 
             } else {

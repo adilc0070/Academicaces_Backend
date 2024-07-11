@@ -61,6 +61,12 @@ class CourseServices {
     async viewCourse(id: string) {
         return await this.courseRepo.getCourse(id)
     }
+    async postrating(id: string, data: any) {
+        return await this.courseRepo.postRating(id, data)
+    }
+    async getReview(id: string|null) {
+        return await this.courseRepo.getReview(id)
+    }
 }
 
 export default CourseServices

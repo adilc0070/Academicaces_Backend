@@ -2,6 +2,7 @@ import cousre from "../models/cousre";
 import { ICourse } from "../interfaces/courseInterface";
 import { ObjectId as objid } from "mongoose";
 import { ObjectId } from "mongodb";
+import review from "../models/review";
 
 
 class CourseRepo {
@@ -93,6 +94,17 @@ class CourseRepo {
     }
     async countDoc() {
         return await cousre.countDocuments()
+    }
+    async postRating(id: string, data: any) {
+        const filter = { courseID: id || data.courseId, studentID: data.studentId };
+        const update = { rating: data.rating, comment: data.comment };
+        const options = { new: true, upsert: true };
+    
+        return await review.findOneAndUpdate(filter, update, options);
+    }
+    
+    async getReview(id: string|null) {
+        return await review.find({ courseID: id }).populate("courseID", "title").populate("studentID", "userName").exec()
     }
 
 }

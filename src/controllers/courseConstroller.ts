@@ -482,7 +482,43 @@ class CourseController {
             res.status(500).json({ error: 'Failed to check enrollment', status: false });
         }
     }
+    async postReview(req: Request, res: Response): Promise<void> {
+        try {
+            console.log('req.body', req.body);
+            console.log('req.params', req.params);
+            
+            const { id, courseId } = req.params;
+            const { rating, feedback } = req.body;
+            const student: any = await this.studentService.findUserByEmail(id);
+            if (!student) {
+                res.status(404).json({ error: 'Student not found', status: false });
+                return;
+            }
+           
+            const review = {
+                rating,
+                comment: feedback,
+                studentId: student._id,
+                courseId: courseId
+            };
+            await this.courseService.postrating(courseId,review);
+            res.json({ message: 'Review posted successfully', status: true, statusCode: 200 });
+        } catch (error) {
+            console.error('Error posting review:', error);
+            res.status(500).json({ error: 'Failed to post review', status: false });
+        }
+    }
+    async getReview(req: Request, res: Response): Promise<void> {
+        try {  
+            const { courseId } = req.params;
+            const review = await this.courseService.getReview(courseId)
 
+            res.json({ review, message: 'Review fetched successfully', status: true, statusCode: 200 });
+        } catch (error) {
+            console.error('Error fetching review:', error);
+            res.status(500).json({ error: 'Failed to fetch review', status: false });
+        }
+    }
 }
 
 export default CourseController

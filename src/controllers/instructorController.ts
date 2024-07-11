@@ -111,6 +111,15 @@ class InstructorController {
         } catch (error) {
         }
     }
+    async editPassword(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, oldPassword, newPassword } = req.body
+            let result = await this.instructorService.editPassword(email, oldPassword, newPassword)
+            if (result) res.json({ result: result, message: 'change password is success', status: true, statusCode: 200 })
+            else res.json({ result: result, error: 'change password is failed', status: false, statusCode: 500 })
+        } catch (error) {
+        }
+    }
 
 }
 

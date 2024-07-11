@@ -50,7 +50,7 @@ class StudentServices {
 
     async verifyOtp(email: string, otp: string): Promise<IStudentRes | void> {
         try {
-            let userexist:any= await this.studentRep.findUserByEmail(email)
+            let userexist: any = await this.studentRep.findUserByEmail(email)
             if (!userexist) throw new Error("User not found")
             let otpData: IOtp | null = await this.otpRepo.findOtpByEmail(email)
             if (!otpData) throw new Error("Otp not found")
@@ -59,8 +59,9 @@ class StudentServices {
             else userexist.verified = true
 
             let userData: IStudent | null = await this.studentRep.findByIdAndUpdate(userexist?._id, userexist)
+            const token: string = generateToken(userexist)
             if (userData) await this.otpRepo.deleteOtp(email)
-            return { status: true, message: "user verified successfully", userData }
+            return { status: true,token, message: "user verified successfully", userData }
 
         } catch (error) {
             console.error("Error in verifyOtp:", error);

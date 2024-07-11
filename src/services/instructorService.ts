@@ -141,8 +141,19 @@ class InstructorService {
             throw error
         }
     }
-
-
+    async editPassword(email: string, oldPassword: string, newPassword: string): Promise<any> {
+        try {
+            let userexist: IInstructor | null = await this.instructorRepo.findInstructorByEmail(email)
+            if (!userexist) throw new Error("User not found")
+            let match = await bycrypt.compare(oldPassword, userexist.password)
+            if (!match) throw new Error("Invalid password")
+            let result = await this.instructorRepo.changePassword(email, newPassword)
+            if (result) return { result: result, message: 'change password is success', status: true, statusCode: 200 }
+            else return { result: result, error: 'change password is failed', status: false, statusCode: 500 }
+        } catch (error) {
+            throw error
+        }
+    }
 
 
 }

@@ -7,7 +7,16 @@ const setCookie = (res: Response, name: string, token: string) => {
         expires: new Date(Date.now() + 60 * 60 * 1000),
     });
 }
+const deleteCookie = (res: Response, name: string) => {
+    res.cookie(name, '', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'strict',
+        expires: new Date(Date.now()),
+    });
+}
 
 export {
-    setCookie
+    setCookie,
+    deleteCookie
 }
