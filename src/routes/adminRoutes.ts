@@ -25,6 +25,7 @@ import chapterService from "../services/chapterService";
 import ChapterRepo from "../repositories/chapterRepository";
 import EnrolledCourseService from "../services/enrolledCourseService";
 import EnrolledCourseRepo from "../repositories/enrolledCourseRepository";
+import AssignmentRepo from "../repositories/assignmentRepository";
 
 
 // let adminController=new AdminController(new AdminServices(new AdminRepository()));
@@ -32,7 +33,7 @@ let studentController = new StudentController(new StudentServices(new StudentRep
 let catogariesController = new CatagoriesController(new CatogariesService(new CatogariesRepo()))
 let instructorController = new InstructorController(new InstructorService(new InstructorRepo(), new OtpRepo()))
 let courseController = new CourseController(
-    new CourseServices(new CourseRepo()),
+    new CourseServices(new CourseRepo(),new AssignmentRepo()),
     new InstructorService(new InstructorRepo(), new OtpRepo()),
     new LessonService(new LessonRepo()),
     new chapterService(new ChapterRepo()),

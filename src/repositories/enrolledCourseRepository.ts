@@ -1,3 +1,4 @@
+import account from "../models/account";
 import chatModel from "../models/chat";
 import enrolledCourse from "../models/enrolledCourse";
 
@@ -30,6 +31,14 @@ class EnrolledCourseRepo {
       return true;
     }
     return true;
+  }
+  async myEarning(instructorId: string | null) {
+    return await account.aggregate([
+      { $match: { instructorId: instructorId } },
+      { $project: { _id: 0, earnings: 1 } },
+      { $unwind: '$earnings' },
+      { $group: { _id: null, total: { $sum: '$earnings.amount' } } },
+    ])
   }
 }
 

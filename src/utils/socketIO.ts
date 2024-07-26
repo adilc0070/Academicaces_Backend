@@ -43,6 +43,17 @@ export const initializeSocket = (server: HttpServer) => {
                 console.error("Error sending message:", error);
             }
         });
+        socket.on("startVideoCall", ({ roomName }) => {
+            socket.join(roomName);
+            socket.to(roomName).emit("videoCallStarted");
+        });
+
+        socket.on("joinVideoCall", ({ roomName }) => {
+            socket.join(roomName);
+            socket.to(roomName).emit("userJoinedCall");
+        });
+
+
 
         socket.on("disconnect", () => {
             const userId = onlineUsers.get(socket.id);

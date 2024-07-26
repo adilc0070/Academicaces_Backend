@@ -1,5 +1,6 @@
 import Instructor from "../models/instructor";
 import { IInstructor, } from "../interfaces/instructorInterrface";
+import account from "../models/account";
 
 
 
@@ -15,8 +16,9 @@ class InstructorRepo {
                 bio,
                 verified
             })
-            console.log("newInstructor", newInstructor);
-            return await newInstructor.save()
+            await newInstructor.save()
+            await account.create({ instructorId: newInstructor._id })
+            return newInstructor
         } catch (error) {
             throw error
         }

@@ -1,4 +1,5 @@
-import {Schema, model} from "mongoose";
+import { Schema, model, Types } from "mongoose";
+
 const reviewSchema = new Schema({
     rating: {
         type: Number,
@@ -9,15 +10,21 @@ const reviewSchema = new Schema({
         required: true
     },
     courseID: {
-        type: String,
+        type: Types.ObjectId,
         ref: 'Course',
         required: true
     },
     studentID: {
-        type: String,
+        type: Types.ObjectId,
         ref: 'Student',
         required: true
-    }
-})
+    },
+    replies: [
+        {
+            comment: String,
+            studentID: { type: Schema.Types.ObjectId, ref: 'Student' }
+        }
+    ]
+});
 
-export default model('Review', reviewSchema)
+export default model('Review', reviewSchema);

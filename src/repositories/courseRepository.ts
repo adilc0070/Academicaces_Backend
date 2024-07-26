@@ -1,6 +1,6 @@
 import cousre from "../models/cousre";
 import { ICourse } from "../interfaces/courseInterface";
-import { ObjectId as objid } from "mongoose";
+import { ObjectId as objid, Types } from "mongoose";
 import { ObjectId } from "mongodb";
 import review from "../models/review";
 
@@ -99,13 +99,30 @@ class CourseRepo {
         const filter = { courseID: id || data.courseId, studentID: data.studentId };
         const update = { rating: data.rating, comment: data.comment };
         const options = { new: true, upsert: true };
-    
+
         return await review.findOneAndUpdate(filter, update, options);
     }
-    
-    async getReview(id: string|null) {
-        return await review.find({ courseID: id }).populate("courseID", "title").populate("studentID", "userName").exec()
+
+
+    async getReview(id: string | null) {
+        if (!id) {
+            return []; // or handle it as needed
+        }
+        return await review.find({ courseID: new Types.ObjectId(id) })
+            .populate("courseID", "title")
+            .populate("studentID", "userName")
+            .populate("replies.studentID", "userName")
+            .exec();
     }
+
+    async addReply(reviewId: string, reply: any) {
+        return await review.findByIdAndUpdate(
+            reviewId,
+            { $push: { replies: reply } },
+            { new: true }
+        );
+    }
+
 
 }
 

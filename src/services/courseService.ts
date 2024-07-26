@@ -2,12 +2,14 @@ import CourseRepo from "../repositories/courseRepository";
 import { ICourse } from "../interfaces/courseInterface";
 import { ObjectId } from "mongoose";
 import bycrypt from "bcrypt"
+import AssignmentRepo from "../repositories/assignmentRepository";
 
 class CourseServices {
     private courseRepo: CourseRepo
-
-    constructor(courseRepo: CourseRepo) {
-        this.courseRepo = courseRepo
+    private assignmentRepo: AssignmentRepo
+    constructor(courseRepo: CourseRepo, assignmentRepo: AssignmentRepo) {
+        this.courseRepo = courseRepo,
+        this.assignmentRepo = assignmentRepo
     }
     async createCourse({ title, subtitle, thumbnail, instructor, category, topic, triler, price }: any) {
         return await this.courseRepo.createCourse({ title, subtitle, thumbnail, instructor, category, topic, triler, price })
@@ -64,8 +66,27 @@ class CourseServices {
     async postrating(id: string, data: any) {
         return await this.courseRepo.postRating(id, data)
     }
-    async getReview(id: string|null) {
-        return await this.courseRepo.getReview(id)
+    async getReview(id: string | null) {
+        return await this.courseRepo.getReview(id);
+    }
+     
+    async addReply(reviewId: string, reply: any) {
+        return await this.courseRepo.addReply(reviewId, reply);
+    }
+    async createAssignment( data: any) {
+        return await this.assignmentRepo.createAssignment( data)
+    }
+    async findAssignment(id: string) {
+        return await this.assignmentRepo.findAssignmentById(id)
+    }
+    async findAssignmentByInstructorId(id: string) {
+        return await this.assignmentRepo.findAssignmentByInstructorId(id)
+    }
+    async findCourse(id: string) {
+        return await this.courseRepo.getCourse(id)
+    }
+    async findAssignmentByCourseId(id: string) {
+        return await this.assignmentRepo.findByCourseId(id)
     }
 }
 

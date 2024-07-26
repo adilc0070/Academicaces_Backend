@@ -20,10 +20,11 @@ import StudentRepo from "../repositories/studentRepository";
 import ChatRepo from "../repositories/chatRepository";
 import ChatService from "../services/chatService";
 import ChatController from "../controllers/chatController";
+import AssignmentRepo from "../repositories/assignmentRepository";
 
 const instructorController = new InstructorController(new InstructorServices(new InstructorRepo(), new OtpRepo()))
 const courseController = new CourseController(
-    new CourseServices(new CourseRepo()),
+    new CourseServices(new CourseRepo(),new AssignmentRepo()),
     new InstructorServices(new InstructorRepo(), new OtpRepo()),
     new LessonService(new LessonRepo()),
     new chapterService(new ChapterRepo()),
@@ -49,5 +50,8 @@ instructorRoute.put('/:id/updateCourse', multerMid.any(), courseController.updat
 instructorRoute.get('/:id/listChats', chatController.listInstructorChats.bind(chatController))
 instructorRoute.post('/:id/sendChat', chatController.createMessage.bind(chatController))
 instructorRoute.get('/:id/listMessages', chatController.getMessages.bind(chatController))
+instructorRoute.post('/:id/createAssignment', multerMid.single('file'), courseController.createAssignment.bind(courseController));
+instructorRoute.get('/:id/listAssignment', courseController.findInstructorAssignment.bind(courseController));
+instructorRoute.get('/:id/myEarnings', courseController.myEarnings.bind(courseController))
 
 export default instructorRoute

@@ -170,6 +170,7 @@ class CourseController {
                 });
                 return resultFile;
             }
+
             function findingVideo(req: any, lesson: any): any {
                 let resultFile: any = '';
 
@@ -181,42 +182,46 @@ class CourseController {
                 return resultFile;
             }
 
+            // Create a queue for sections
+            const sectionQueue: any[] = [...sections];
+            const processedSections: any[] = [];
 
-            // Process sections and their lectures
-            const processedSections = await Promise.all(sections.map(async (section: any) => {
+            while (sectionQueue.length > 0) {
+                const section = sectionQueue.shift();
 
-                const processedLectures = await Promise.all(section.lectures.map(async (lecture: any) => {
-                    let filesUrl = ''
-                    let videoUrl = ''
+                // Create a queue for lectures in the current section
+                const lectureQueue: any[] = [...section.lectures];
+                const processedLectures: any[] = [];
+
+                while (lectureQueue.length > 0) {
+                    const lecture = lectureQueue.shift();
+                    let filesUrl = '';
+                    let videoUrl = '';
+
                     if (findingFile(req, lecture)) {
-
-                        await cloudinary.uploader.upload(findingFile(req, lecture).path, {
+                        const file = findingFile(req, lecture);
+                        const result = await cloudinary.uploader.upload(file.path, {
                             folder: 'Academicaces',
                             resource_type: 'auto'
-                        }).then((result) => {
-                            filesUrl = result.url
-                            unlink(findingFile(req, lecture).path, (err) => {
-                                if (err) throw err
-                            })
-                        }).catch((error) => {
-                            throw error
-                        })
-                    }
-                    if (findingVideo(req, lecture)) {
-                        let type = findingVideo(req, lecture).mimetype.split('/')[0]
-                        await cloudinary.uploader.upload(findingVideo(req, lecture).path, {
-                            folder: 'Academicaces',
-                            resource_type: type
-                        }).then((result) => {
-                            videoUrl = result.url
-                            unlink(findingVideo(req, lecture).path, (err) => {
-                                if (err) throw err
-                            })
-                        }).catch((error) => {
-                            throw error
-                        })
+                        });
+                        filesUrl = result.url;
+                        unlink(file.path, (err) => {
+                            if (err) throw err;
+                        });
                     }
 
+                    if (findingVideo(req, lecture)) {
+                        const video = findingVideo(req, lecture);
+                        const type = video.mimetype.split('/')[0];
+                        const result = await cloudinary.uploader.upload(video.path, {
+                            folder: 'Academicaces',
+                            resource_type: type
+                        });
+                        videoUrl = result.url;
+                        unlink(video.path, (err) => {
+                            if (err) throw err;
+                        });
+                    }
 
                     const newLesson = await this.lessonService.createLesson({
                         name: lecture.name,
@@ -225,23 +230,23 @@ class CourseController {
                         files: filesUrl,
                         video: videoUrl,
                         order: section.id
-                    })
-
-                    return newLesson._id
-                }));
-
-
-                return await this.chapterService.createChapter(
-                    {
-                        order: section.id,
-                        name: section.name,
-                        lessonsID: processedLectures,
-                        courseID: id,
-                        isFree: section.isFree === true ? true : false
                     });
-            }));
 
-            let result = await this.courseService.addChapter(id, processedSections.map(section => section._id));
+                    processedLectures.push(newLesson._id);
+                }
+
+                const newSection = await this.chapterService.createChapter({
+                    order: section.id,
+                    name: section.name,
+                    lessonsID: processedLectures,
+                    courseID: id,
+                    isFree: section.isFree === true ? true : false
+                });
+
+                processedSections.push(newSection._id);
+            }
+
+            let result = await this.courseService.addChapter(id, processedSections);
             if (result) await this.categoryService.incrimentNos(result.category.toString());
             res.json({ result, message: 'Curriculum added successfully', status: true, statusCode: 200 });
         } catch (error) {
@@ -249,6 +254,7 @@ class CourseController {
             res.json({ error: 'Failed to add curriculum', status: false, statusCode: 500 });
         }
     }
+
 
     async updateCourse(req: Request, res: Response): Promise<void> {
         try {
@@ -461,7 +467,6 @@ class CourseController {
         try {
             const { id, courseId } = req.params;
             const student: any = await this.studentService.findUserByEmail(id);
-
             if (!student) {
                 res.status(404).json({ error: 'Student not found', status: false });
                 return;
@@ -484,34 +489,58 @@ class CourseController {
     }
     async postReview(req: Request, res: Response): Promise<void> {
         try {
-            console.log('req.body', req.body);
-            console.log('req.params', req.params);
-            
             const { id, courseId } = req.params;
             const { rating, feedback } = req.body;
             const student: any = await this.studentService.findUserByEmail(id);
+
             if (!student) {
                 res.status(404).json({ error: 'Student not found', status: false });
                 return;
             }
-           
+
             const review = {
                 rating,
                 comment: feedback,
                 studentId: student._id,
                 courseId: courseId
             };
-            await this.courseService.postrating(courseId,review);
+            await this.courseService.postrating(courseId, review);
             res.json({ message: 'Review posted successfully', status: true, statusCode: 200 });
         } catch (error) {
             console.error('Error posting review:', error);
             res.status(500).json({ error: 'Failed to post review', status: false });
         }
     }
+    async postReply(req: Request, res: Response): Promise<void> {
+        try {
+            const { reviewId } = req.params;
+            const reply = req.body;
+            const student = await this.studentService.findUserByEmail(reply.studentId);
+
+            if (!student) {
+                res.status(404).json({ error: 'Student not found', status: false });
+                return
+            }
+            reply.studentID = student._id;
+
+            const updatedReview = await this.courseService.addReply(reviewId, reply);
+
+            res.json({ review: updatedReview, message: 'Reply added successfully', status: true, statusCode: 200 });
+        } catch (error) {
+            console.error('Error posting reply:', error);
+            res.status(500).json({ error: 'Failed to post reply', status: false });
+        }
+    }
+
     async getReview(req: Request, res: Response): Promise<void> {
-        try {  
+        try {
             const { courseId } = req.params;
-            const review = await this.courseService.getReview(courseId)
+            if (!courseId) {
+                res.status(400).json({ error: 'Course ID is required', status: false });
+                return;
+            }
+
+            const review = await this.courseService.getReview(courseId);
 
             res.json({ review, message: 'Review fetched successfully', status: true, statusCode: 200 });
         } catch (error) {
@@ -519,6 +548,99 @@ class CourseController {
             res.status(500).json({ error: 'Failed to fetch review', status: false });
         }
     }
+    async createAssignment(req: Request, res: Response): Promise<void> {
+        try {
+            if (!req.file) {
+                res.status(400).json({ error: 'No file uploaded', status: false });
+                return;
+            }
+
+            const fileUrl = req.file.path; // Assuming this is where your file is temporarily saved
+
+            // Upload file to Cloudinary
+            const result = await cloudinary.uploader.upload(fileUrl, {
+                folder: 'Academicaces',
+                resource_type: 'auto'
+            });
+
+            // Clean up local file after upload
+            unlink(fileUrl, (err) => {
+                if (err) {
+                    console.error('Error deleting local file:', err);
+                }
+            });
+
+            // Process other form data
+            const { course, assignmentName, instructions } = req.body;
+            const courseId=await this.courseService.findCourse(course);
+            console.log('Course:', courseId?._id);
+            console.log('Assignment Name:', assignmentName);
+            console.log('Instructions:', instructions);
+            console.log('File URL:', result.url); // Use result.url from Cloudinary
+            console.log(req.params);
+            const instructor = await this.instructorService.findId(req.params.id);
+            const assignment = await this.courseService.createAssignment({
+                name:assignmentName,
+                instructions,
+                courseId: courseId?._id,
+                file: result.url,
+                instructor: instructor._id
+            });
+
+            res.status(200).json({ assignment, message: 'Assignment created successfully', status: true });
+        } catch (error) {
+            console.error('Error creating assignment:', error);
+            res.status(500).json({ error: 'Failed to create assignment', status: false });
+        }
+    }
+    async findAssignment(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            console.log("req.params", req.params);
+            const assignment = await this.courseService.findAssignmentByCourseId(id);
+            res.status(200).json({ assignment, message: 'Assignment fetched successfully', status: true });
+        } catch (error) {
+            console.error('Error finding assignment:', error);
+            res.status(500).json({ error: 'Failed to find assignment', status: false });
+        }
+    }
+    async findInstructorAssignment(req: Request, res: Response): Promise<void> {
+        try {
+            console.log("req.params", req.params);
+            const { id } = req.params;
+            const instructor=await this.instructorService.findId(id);
+            const assignments = await this.courseService.findAssignmentByInstructorId(instructor._id);
+            res.status(200).json({ assignments, message: 'Assignment fetched successfully', status: true });
+        } catch (error) {
+            console.error('Error finding assignment:', error);
+            res.status(500).json({ error: 'Failed to find assignment', status: false });
+        }
+    }
+    async findAssignmentByCourse(req: Request, res: Response): Promise<void> {
+        try {
+            console.log("req.params", req.params);
+            const { id } = req.params;
+            const assignment = await this.courseService.findAssignmentByCourseId(id);
+            res.status(200).json({ assignment, message: 'Assignment fetched successfully', status: true });
+        } catch (error) {
+            console.error('Error finding assignment:', error);
+            res.status(500).json({ error: 'Failed to find assignment', status: false });
+        }
+    }
+    async myEarnings(req: Request, res: Response): Promise<void> {
+        try {
+            console.log("req.params", req.params);
+            
+            const { id } = req.params;
+            const earnings = await this.enrollCourseService.myEarning(id);
+            res.status(200).json({ earnings, message: 'Earnings fetched successfully', status: true });
+        } catch (error) {
+            console.error('Error finding earnings:', error);
+            res.status(500).json({ error: 'Failed to find earnings', status: false });
+        }
+    }
+    
+
 }
 
 export default CourseController

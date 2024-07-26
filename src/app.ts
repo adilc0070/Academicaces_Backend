@@ -1,13 +1,13 @@
-import express, { } from "express";
+import express from "express";
+import cors from 'cors'
 import dotenv from 'dotenv'
+import bodyParser from "body-parser";
 import http from 'http'
 import connectDB from "../migrations";
 import authRoute from "./routes/authRoute";
 import { initializeSocket } from "./utils/socketIO";
 
 dotenv.config()
-import cors from 'cors'
-import bodyParser from "body-parser";
 import adminRoute from "./routes/adminRoutes";
 import instructorRoute from "./routes/instructorRoutes";
 import studentRoute from "./routes/studentRoutes";
