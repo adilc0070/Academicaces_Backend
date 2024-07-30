@@ -21,6 +21,7 @@ class AdminController {
             const admin: IAdminRes | null = await this.adminService.authAdmin(email, password)
             if (admin?.token) {                
                 setCookie(res, 'adminToken', admin.token)
+                // sessionStorage.setItem('adminToken', admin.token)
                 res.json({ admin, message: "Login successful", status: true, statusCode: 200 })
             }else res.json({ error: "Invalid email or password", status: false, statusCode: 400 })
         } catch (error) {

@@ -3,7 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import bodyParser from "body-parser";
 import http from 'http'
-import connectDB from "../migrations";
+import connectDB from "./migrations"; 
 import authRoute from "./routes/authRoute";
 import { initializeSocket } from "./utils/socketIO";
 
