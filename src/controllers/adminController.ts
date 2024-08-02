@@ -17,7 +17,7 @@ class AdminController {
 
     async adminLogin(req: Request, res: Response): Promise<void> {
         try {
-            const { email, password }: IAdmin = req.body.data
+            const { email, password }: IAdmin = req.body
             const admin: IAdminRes | null = await this.adminService.authAdmin(email, password)
             if (admin?.token) {                
                 setCookie(res, 'adminToken', admin.token)

@@ -30,7 +30,8 @@ class InstructorController {
     async login(req: Request, res: Response): Promise<void> {
         try {
 
-            const { email, password } = req.body.data
+            const { email, password } = req.body
+            
             const instructor = await this.instructorService.authInstructor(email, password)
             if (instructor) {
                 // setCookie(res, 'instructorToken', instructor.token)
