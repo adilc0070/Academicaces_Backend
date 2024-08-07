@@ -18,7 +18,6 @@ class StudentController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { userName, email, password, bio } = req.body;
-                console.log('email', email, 'password', password);
                 const user = yield this.studentService.createUser(userName, email, password, bio);
                 if (user) {
                     res.json({ user, message: "User created successfully", status: true, statusCode: 201 });
@@ -36,6 +35,7 @@ class StudentController {
     logout(_req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                localStorage.removeItem('userToken');
                 (0, coockie_1.deleteCookie)(res, 'userToken');
                 res.json({ message: "Logout successful", status: true, statusCode: 200 });
             }
@@ -53,6 +53,13 @@ class StudentController {
                 const user = yield this.studentService.authUser(email, password);
                 if (user === null || user === void 0 ? void 0 : user.token) {
                     if (((_a = user === null || user === void 0 ? void 0 : user.userData) === null || _a === void 0 ? void 0 : _a.verified) === true) {
+                        res.cookie('userToken', user.token, {
+                            httpOnly: true,
+                            secure: true,
+                            sameSite: 'strict',
+                            expires: new Date(Date.now() + 60 * 60 * 1000),
+                        });
+                        // console.log('local', res.cookie('userToken', user.token));
                         (0, coockie_1.setCookie)(res, 'userToken', user.token);
                         res.json({ user, message: "Login successful", status: true, statusCode: 200, });
                     }
@@ -93,8 +100,10 @@ class StudentController {
                 let { email, otp } = req.body;
                 if (email && otp) {
                     const user = yield this.studentService.verifyOtp(email, otp);
-                    if (user)
+                    if (user) {
+                        localStorage.setItem('userToken', user === null || user === void 0 ? void 0 : user.token);
                         res.json({ user, message: "User verified successfully", status: true, statusCode: 200 });
+                    }
                 }
             }
             catch (error) {

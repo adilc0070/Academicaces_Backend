@@ -9,7 +9,7 @@ class EnrolledCourseRepo {
   async checkEnrolledCourse(studentId: string | null, courseId: string) {
     return await enrolledCourse.findOne({ studentId, courseId })
   }
-  async getEnrolledCourse(id: string | null) {
+  async getEnrolledCourse(id: string) {    
     return await enrolledCourse.find({ studentId: id }).sort({ createdAt: -1 })
       .populate('studentId')
       .populate({ path: 'courseId', populate: { path: 'instructor' } })

@@ -114,8 +114,9 @@ class CourseController {
     }
     listCourses(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
-                const id = req.body.data;
+                const id = (_a = req.body.data) === null || _a === void 0 ? void 0 : _a.instructorId;
                 let instructor = yield this.instructorService.findId(id);
                 const courses = yield this.courseService.listCourses(instructor);
                 if (courses)

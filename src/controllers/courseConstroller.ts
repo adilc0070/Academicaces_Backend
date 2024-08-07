@@ -117,7 +117,7 @@ class CourseController {
 
     async listCourses(req: Request, res: Response): Promise<void> {
         try {
-            const id = req.body.data
+            const id = req.body.data?.instructorId
             let instructor = await this.instructorService.findId(id)
 
             const courses: ICourse[] | null = await this.courseService.listCourses(instructor)
@@ -473,12 +473,14 @@ class CourseController {
             }
 
             const courses = await this.enrollCourseService.getEnrolledCourse(student?._id);
-
             let isEnrolled = false;
-            for (const element of courses) {
-                if (element.courseId._id.toString() === courseId) {
-                    isEnrolled = true;
-                    break;
+            if (courseId) {
+
+                for (const element of courses) {
+                    if (element?.courseId?._id.toString() == courseId) {
+                        isEnrolled = true;
+                        break;
+                    }
                 }
             }
             res.json(isEnrolled);
@@ -572,7 +574,7 @@ class CourseController {
 
             // Process other form data
             const { course, assignmentName, instructions } = req.body;
-            const courseId=await this.courseService.findCourse(course);
+            const courseId = await this.courseService.findCourse(course);
             console.log('Course:', courseId?._id);
             console.log('Assignment Name:', assignmentName);
             console.log('Instructions:', instructions);
@@ -580,7 +582,7 @@ class CourseController {
             console.log(req.params);
             const instructor = await this.instructorService.findId(req.params.id);
             const assignment = await this.courseService.createAssignment({
-                name:assignmentName,
+                name: assignmentName,
                 instructions,
                 courseId: courseId?._id,
                 file: result.url,
@@ -608,7 +610,7 @@ class CourseController {
         try {
             console.log("req.params", req.params);
             const { id } = req.params;
-            const instructor=await this.instructorService.findId(id);
+            const instructor = await this.instructorService.findId(id);
             const assignments = await this.courseService.findAssignmentByInstructorId(instructor._id);
             res.status(200).json({ assignments, message: 'Assignment fetched successfully', status: true });
         } catch (error) {
@@ -630,7 +632,7 @@ class CourseController {
     async myEarnings(req: Request, res: Response): Promise<void> {
         try {
             console.log("req.params", req.params);
-            
+
             const { id } = req.params;
             const earnings = await this.enrollCourseService.myEarning(id);
             res.status(200).json({ earnings, message: 'Earnings fetched successfully', status: true });
@@ -639,7 +641,7 @@ class CourseController {
             res.status(500).json({ error: 'Failed to find earnings', status: false });
         }
     }
-    
+
 
 }
 

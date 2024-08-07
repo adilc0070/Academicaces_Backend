@@ -1,13 +1,13 @@
 import express from "express";
 import cors from 'cors'
 import dotenv from 'dotenv'
+dotenv.config()
 import bodyParser from "body-parser";
 import http from 'http'
-import connectDB from "./migrations"; 
+import connectDB from "./migrations";
 import authRoute from "./routes/authRoute";
 import { initializeSocket } from "./utils/socketIO";
 
-dotenv.config()
 import adminRoute from "./routes/adminRoutes";
 import instructorRoute from "./routes/instructorRoutes";
 import studentRoute from "./routes/studentRoutes";
@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const server = http.createServer(app)
 app.use(cors({
-    origin: [`${process.env.ORIGIN_URL}`],
+    origin: [`${process.env.ORIGIN_URI}`],
     methods: ["GET", "POST", "DELETE", "PATCH", "PUT"],
     credentials: true,
 }))
@@ -68,7 +68,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 });
 // Start the server
 server.listen(process.env.PORT, () => {
-    console.log("Server is running on port 3000 \n\nhttp://localhost:3000");
+    console.log(`Server is running on port 3000 \n\nfroentend url: ${process.env.ORIGIN_URI} \n\nthis is backend url: http://localhost:${process.env.PORT}`);
 });
 
 export default app;

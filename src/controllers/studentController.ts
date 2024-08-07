@@ -3,8 +3,6 @@ import { IStudent, IStudentRes } from "../interfaces/studentInterface";
 import studentService from "../services/studentService"
 import { deleteCookie, setCookie } from "../utils/coockie";
 
-
-
 class StudentController {
     private studentService: studentService
 
@@ -14,10 +12,8 @@ class StudentController {
     async signUpUser(req: Request, res: Response): Promise<void> {
         try {
             const { userName, email, password, bio }: IStudent = req.body
-            console.log('email', email, 'password', password);
-
             const user = await this.studentService.createUser(userName, email, password, bio)
-            if (user ) {
+            if (user) {
                 res.json({ user, message: "User created successfully", status: true, statusCode: 201 })
             } else {
                 res.json({ error: "Failed to create user", status: false, statusCode: 500 })
@@ -29,6 +25,7 @@ class StudentController {
     }
     async logout(_req: Request, res: Response): Promise<void> {
         try {
+            localStorage.removeItem('userToken');
             deleteCookie(res, 'userToken');
             res.json({ message: "Logout successful", status: true, statusCode: 200 });
         } catch (error) {
@@ -39,11 +36,22 @@ class StudentController {
     async signInUser(req: Request, res: Response): Promise<void> {
         try {
             const { email, password }: IStudent = req.body;
-
             const user = await this.studentService.authUser(email, password);
             if (user?.token) {
                 if (user?.userData?.verified === true) {
-                    setCookie(res, 'userToken', user.token);
+                    // const local= localStorage.setItem('userToken', user.token);
+                    // console.log('local',local);                    
+                    res.cookie('userToken', user.token, {
+                        httpOnly: true,
+                        secure: true, // Ensure your server is running over HTTPS
+                        sameSite: 'strict',
+                        expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+                         // Replace with your actual domain without https://
+                    });
+
+                    
+
+                    setCookie(res, 'userToken', user.token)
                     res.json({ user, message: "Login successful", status: true, statusCode: 200, });
                 } else res.json({ error: "User not verified", status: false, statusCode: 400 });
 
@@ -75,7 +83,10 @@ class StudentController {
             let { email, otp } = req.body
             if (email && otp) {
                 const user = await this.studentService.verifyOtp(email, otp)
-                if (user) res.json({ user, message: "User verified successfully", status: true, statusCode: 200 })
+                if (user) {
+                    localStorage.setItem('userToken', user?.token as string);
+                    res.json({ user, message: "User verified successfully", status: true, statusCode: 200 })
+                }
             }
         } catch (error) {
 

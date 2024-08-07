@@ -4,9 +4,10 @@ exports.deleteCookie = exports.setCookie = void 0;
 const setCookie = (res, name, token) => {
     res.cookie(name, token, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: 'strict',
         expires: new Date(Date.now() + 60 * 60 * 1000),
+        domain: 'localhost:3000'
     });
 };
 exports.setCookie = setCookie;

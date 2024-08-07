@@ -15,12 +15,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const body_parser_1 = __importDefault(require("body-parser"));
 const http_1 = __importDefault(require("http"));
 const migrations_1 = __importDefault(require("./migrations"));
 const authRoute_1 = __importDefault(require("./routes/authRoute"));
 const socketIO_1 = require("./utils/socketIO");
-dotenv_1.default.config();
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const instructorRoutes_1 = __importDefault(require("./routes/instructorRoutes"));
 const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
@@ -65,6 +65,6 @@ app.use((err, _req, res, _next) => {
     res.status(500).send('Something went wrong!');
 });
 server.listen(process.env.PORT, () => {
-    console.log("Server is running on port 3000 \n\nhttp://localhost:3000");
+    console.log(`Server is running on port 3000 \n\nfroentend url: ${process.env.ORIGIN_URL} \n\nthis is backend url: http://localhost:${process.env.PORT}`);
 });
 exports.default = app;

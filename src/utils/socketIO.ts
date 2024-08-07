@@ -6,7 +6,9 @@ import chatModel from "../models/chat";
 export const initializeSocket = (server: HttpServer) => {
     const io = new Server(server, {
         cors: {
-            origin: "*",
+            origin: process.env.ORIGIN_URI || "*",
+            methods: ["GET", "POST"],
+            credentials: true
         },
     });
 
