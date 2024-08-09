@@ -1,6 +1,7 @@
 import { Request, Response } from "express"
 import instructorService from "../services/instructorService"
 import { IInstructorRes } from "../interfaces/instructorInterrface"
+// import { setCookie } from "../utils/coockie"
 
 
 
@@ -32,9 +33,9 @@ class InstructorController {
 
             const { email, password } = req.body
             
-            const instructor = await this.instructorService.authInstructor(email, password)
+            const instructor = await this.instructorService.authInstructor(email, password) 
             if (instructor) {
-                // setCookie(res, 'instructorToken', instructor.token)
+                // setCookie(res, 'instructorToken', instructor?.token)
                 res.json({ instructor, message: "Login successful", status: true, statusCode: 200 })
             } else {
                 res.json({ error: "Invalid email or password", status: false, statusCode: 400 })

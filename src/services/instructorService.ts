@@ -1,12 +1,13 @@
 import bycrypt from "bcrypt"
 import InstructorRepo from "../repositories/instructorRepository"
 import OtpRepo from "../repositories/otpRepository"
-import { IInstructor } from "../interfaces/instructorInterrface"
+import { IInstructor, IInstructorRes } from "../interfaces/instructorInterrface"
 // import { generateToken } from "../utils/jwt"
 import { sendVerifyMail } from "../utils/otpVerification"
 import { Res } from "../interfaces/commonn"
 import { IOtp } from "../interfaces/otpInterface"
 import cousre from "../models/cousre"
+import { generateToken } from "../utils/jwt"
 
 class InstructorService {
     private instructorRepo: InstructorRepo
@@ -44,13 +45,15 @@ class InstructorService {
             throw error
         }
     }
-    async authInstructor(email: string, password: string): Promise<IInstructor | null> {
+    async authInstructor(email: string, password: string): Promise<IInstructorRes | null> {
         try {
             const data: IInstructor | null = await this.instructorRepo.findInstructorByEmail(email)
             if (!data) throw new Error("Invalid email")
             let match = await bycrypt.compare(password, data.password)
             if (!match) throw new Error("Invalid password")
-            return data
+            let token=generateToken(data)
+
+            return {instructor:data,token,status:true,message:"Login successful"}
         } catch (error) {
             console.error("Error in login:", error);
             throw error
